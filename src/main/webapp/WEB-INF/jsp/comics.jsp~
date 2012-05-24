@@ -1,0 +1,93 @@
+<%-- 
+    Document   : hello
+    Created on : May 16, 2012, 3:56:20 PM
+    Author     : Winde
+--%>
+
+<%@ include file="/WEB-INF/jsp/include.jsp" %>
+<!DOCTYPE html>
+<html>
+    <head>
+	<title>Hello</title>
+	<script type="text/javascript" src="resources/jquery.js"></script>wind
+    </head>
+    <body>
+        <style>
+            p {
+                font-family: Verdana, Tahoma, Helvetica, Arial;
+                font-size: 11px;
+            }     
+            a {
+                text-decoration:none;
+                color: #000;
+            }
+            .icon:hover {
+                opacity: 0.9;
+                text-shadow: 0px 0px 3px #CCC;
+            }   
+            .icon:hover>img {
+                box-shadow: 0px 0px 5px #CCC;
+            }
+            .icon {
+                width: 124px;
+                height: 120px;
+                display:inline-block;
+                text-align: center;
+                position: relative;
+            }      
+            .icon>img {
+                width: 64px;
+                height: 52px;
+                position: absolute;
+                top: 3px;
+                left: 30px
+            }
+            .icon>p {
+                position: absolute; 
+                top: 56px; 
+		left: 0px;
+                height: 50px;
+                overflow: hidden;
+		text-align:center;
+		width: 124px;
+                padding: 0 2px 2px 2px
+            } 
+
+        </style>
+        <div>
+            <c:forEach items="${model.directorios}" var="dir">
+                <c:set var="trimDir" value="${fn:substring(dir,0,50)}"/>
+                <a href="<c:url value="/comics.htm" ><c:param name="ruta" value="${param.ruta}/${dir}"/></c:url>" title="<c:out value="${dir}"/>">
+                    <div class="icon">
+                        <img src="resources/folder.png" />
+                        <p><c:out value="${trimDir}"/></p>
+                    </div>
+                </a>
+            </c:forEach>
+            <c:forEach items="${model.ficheros}" var="fichero">
+                <c:set var="trimFichero" value="${fn:substring(fichero,0,50)}"/>
+                <a href="<c:url value="/comic.htm" ><c:param name="ruta" value="${param.ruta}/${fichero}"/><c:param name="pagina" value="0"/></c:url>" title="<c:out value="${fichero}"/>">
+                    <div class="icon">
+                        <img src="resources/comic.png" />
+                        <p><c:out value="${trimFichero}"/></p>
+                    </div>
+                </a>
+            </c:forEach>
+            <c:choose>
+                <c:when test="${model.parentDirectory==''}">
+                    <c:choose>
+                        <c:when test="${not empty param.ruta}">
+                            <a href="<c:url value="/comics.htm" ></c:url>"><div class="icon"><img src="resources/parent.png" /></div></a>
+                                </c:when>
+                            </c:choose>
+                        </c:when>
+                        <c:otherwise>  
+                    <a href="<c:url value="/comics.htm" ><c:param name="ruta" value="${model.parentDirectory}"/></c:url>"><div class="icon"><img src="resources/parent.png" /></div></a>
+                        </c:otherwise>
+                    </c:choose>
+        </div>
+        <br/>
+
+
+    </body>
+</html>
