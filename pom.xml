@@ -5,7 +5,7 @@
 
     <groupId>com.winde</groupId>
     <artifactId>ComicsWeb</artifactId>
-    <version>0.3</version>
+    <version>0.3.1</version>
     <packaging>war</packaging>
 
     <name>ComicsWeb</name>
