@@ -77,9 +77,15 @@ public class BrowserController implements Controller {
                 listaFicheros.addExtensiontoFilter("pdf");
             }
             List<Content> ficheros = new ArrayList<Content>();
+            
+            
             File[] ficherosArray = listaFicheros.listFilteredFiles();
+            listaFicheros.removeExtensionFilters();
+            listaFicheros.addExtensiontoFilter("jpg");
+            File[] thumbsArray = listaFicheros.listFilteredFiles();
             for (File f : ficherosArray) {
                 ficheros.add(new Content(f.getName(), contentType));
+                
             }
             String parentDirectory = "";
             if (ruta != null) {

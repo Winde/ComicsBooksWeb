@@ -4,16 +4,20 @@
  */
 package com.winde.comicsweb.domain;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -73,7 +77,6 @@ public class ProcessFileZip extends ProcessFile {
         } catch (IOException ex) {
             return null;
         }
-
         return streamBytes;
     }
 
@@ -83,7 +86,7 @@ public class ProcessFileZip extends ProcessFile {
             ZipEntry temp = entriesList.get(0);
             byte[] bytes = processZipEntry(temp);
             if (bytes != null) {
-                return Base64.encode(bytes);
+                return Base64.encodeToString(bytes, false);
             } else {
                 return null;
             }
@@ -111,10 +114,10 @@ public class ProcessFileZip extends ProcessFile {
     @Override
     public String getImg64At(int index) {
         if ((entriesList != null) && (index >= 0)) {
-            if (entriesList.size() > index + 1) {
+            if (entriesList.size() >= index + 1) {
                 byte[] bytes = processZipEntry(entriesList.get(index));
                 if (bytes != null) {
-                    return Base64.encode(bytes);
+                    return Base64.encodeToString(bytes, false);
                 } else {
                     return null;
                 }
@@ -126,7 +129,7 @@ public class ProcessFileZip extends ProcessFile {
     @Override
     public byte[] getImgBytesAt(int index) {
         if ((entriesList != null) && (index >= 0)) {
-            if (entriesList.size() > index + 1) {
+            if (entriesList.size() >= index + 1) {
                 byte[] bytes = processZipEntry(entriesList.get(index));
                 if (bytes != null) {
                     return bytes;
@@ -141,7 +144,7 @@ public class ProcessFileZip extends ProcessFile {
     @Override
     public String getExtensionAt(int index) {
         if ((entriesList != null) && (index >= 0)) {
-            if (entriesList.size() > index + 1) {
+            if (entriesList.size() >= index + 1) {
                 return getExtension(entriesList.get(index).getName());
             }
         }
@@ -160,5 +163,26 @@ public class ProcessFileZip extends ProcessFile {
 
     @Override
     public void close() {
+        try {
+            zipPointer.close();
+        } catch (IOException ex) {
+            Logger.getLogger(ProcessFileZip.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public BufferedImage getImageAt(int index) {
+        if ((entriesList != null) && (index >= 0)) {
+            if (entriesList.size() >= index + 1) {
+                byte[] bytes = processZipEntry(entriesList.get(index));
+                String extension = this.getExtensionAt(index);
+                if ("jpeg".equals(extension) || "jpg".equals(extension)) {
+                    return ProcessFile.imageFromBytesJpeg(bytes);
+                } else {
+                    return ProcessFile.imageFromBytes(bytes);
+                }
+            }
+        }
+        return null;
     }
 }

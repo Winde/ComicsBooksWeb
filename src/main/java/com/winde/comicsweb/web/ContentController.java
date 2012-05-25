@@ -172,13 +172,11 @@ public class ContentController {
             }
 
             File fichero = new File(path);
-
             Map<String, Object> myModel = new HashMap<String, Object>();
             ProcessFile procesadorArchivo = (ProcessFile) session.getAttribute("procesador");
             if (procesadorArchivo == null) {
                 procesadorArchivo = ProcessFile.createProcesFile(fichero);
                 session.setAttribute("procesador", procesadorArchivo);
-                System.out.println("Nuevo Procesador: Sesion es null - " + fichero.getName());
             } else {
                 if (!fichero.getAbsolutePath().equals(procesadorArchivo.getFileName())) {
                     System.out.println("Fichero: " + fichero.getAbsolutePath());
@@ -194,6 +192,8 @@ public class ContentController {
             if (procesadorArchivo == null) {
                 System.out.println("PROCESADOR:" + procesadorArchivo);
                 return null;
+            } else {
+                System.out.println("Nuevo Procesador: Sesion es null - " + fichero.getName() + ", Procesador " + procesadorArchivo.getClass().toString());
             }
             String pagina = request.getParameter("pagina");
             int paginaNum = 0;
@@ -212,7 +212,6 @@ public class ContentController {
                 }
             }
             String imagen = procesadorArchivo.getImg64At(paginaNum);
-
 
             String parentDirectory = "";
             String comicName = "";

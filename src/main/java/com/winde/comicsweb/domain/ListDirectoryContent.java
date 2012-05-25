@@ -79,4 +79,8 @@ public class ListDirectoryContent {
         };
         return dir.listFiles(directoryFilter);
     }
+    
+    public void removeExtensionFilters() {
+        filter.empty();
+    }
 }

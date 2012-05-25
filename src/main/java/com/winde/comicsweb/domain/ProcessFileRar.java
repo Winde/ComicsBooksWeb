@@ -4,10 +4,10 @@
  */
 package com.winde.comicsweb.domain;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import de.innosystec.unrar.Archive;
-import de.innosystec.unrar.exception.RarException;
-import de.innosystec.unrar.rarfile.FileHeader;
+import com.github.junrar.Archive;
+import com.github.junrar.exception.RarException;
+import com.github.junrar.rarfile.FileHeader;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -48,13 +48,14 @@ public class ProcessFileRar extends ProcessFile {
         System.out.println(fichero.getName());
         try {
             rarPointer = new Archive(fichero);
-        } catch (RarException e) {
-            System.out.println("No es un archivo rar");
+        } catch (RarException ex) {
+            Logger.getLogger(ProcessFileRar.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         } catch (IOException ex) {
-            System.out.println("Excepcion IOException");
+            Logger.getLogger(ProcessFileRar.class.getName()).log(Level.SEVERE, null, ex);
             return null;
-        } catch (NullPointerException ex) {
+        } catch (NullPointerException e) {
+            System.out.println("ProcessFileRar: error");
             return null;
         }
         return new ProcessFileRar(fichero, rarPointer);
@@ -75,9 +76,14 @@ public class ProcessFileRar extends ProcessFile {
         try {
             a.extractFile(ficheroActual, out);
         } catch (RarException ex) {
-            System.out.println("RarException " +ex.getMessage());
+            System.out.println("RarException " + ex.getMessage());
         }
         byte[] bytes = out.toByteArray();
+        try {
+            out.close();
+        } catch (IOException ex) {
+            Logger.getLogger(ProcessFileRar.class.getName()).log(Level.SEVERE, null, ex);
+        }
         return bytes;
 
     }
@@ -89,7 +95,7 @@ public class ProcessFileRar extends ProcessFile {
                 FileHeader ficheroActual = ficheros.get(0);
                 byte[] bytes = processFileHeader(ficheroActual);
                 if (bytes != null) {
-                    String salida = Base64.encode(bytes);
+                    String salida = Base64.encodeToString(bytes, false);
                     ficheros.remove(ficheroActual);
                     return salida;
                 } else {
@@ -103,14 +109,16 @@ public class ProcessFileRar extends ProcessFile {
     @Override
     public String getImg64At(int index) {
         if (ficheros != null) {
-            if ((ficheros.size() > index + 1) && (index >= 0)) {
+            if ((ficheros.size() >= index + 1) && (index >= 0)) {
+
                 FileHeader ficheroActual = ficheros.get(index);
                 byte[] bytes = processFileHeader(ficheroActual);
-                System.out.println(index + " " + bytes.length);
+
                 if (bytes != null) {
-                    String salida = Base64.encode(bytes);
+                    String salida = Base64.encodeToString(bytes, false);
                     return salida;
                 } else {
+                    System.out.println(fichero.getName() + " bytes nulos");
                     return null;
                 }
             }
@@ -121,13 +129,30 @@ public class ProcessFileRar extends ProcessFile {
     @Override
     public byte[] getImgBytesAt(int index) {
         if (ficheros != null) {
-            if ((ficheros.size() > index + 1) && (index >= 0)) {
+            if ((ficheros.size() >= index + 1) && (index >= 0)) {
                 FileHeader ficheroActual = ficheros.get(index);
                 byte[] bytes = processFileHeader(ficheroActual);
                 if (bytes != null) {
                     return bytes;
                 } else {
                     return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public BufferedImage getImageAt(int index) {
+        if (ficheros != null) {
+            if ((ficheros.size() >= index + 1) && (index >= 0)) {
+                FileHeader ficheroActual = ficheros.get(index);
+                byte[] bytes = processFileHeader(ficheroActual);
+                String extension = this.getExtensionAt(index);
+                if ("jpeg".equals(extension) || "jpg".equals(extension)) {
+                    return ProcessFile.imageFromBytesJpeg(bytes);
+                } else {
+                    return ProcessFile.imageFromBytes(bytes);
                 }
             }
         }
@@ -146,7 +171,7 @@ public class ProcessFileRar extends ProcessFile {
     @Override
     public String getExtensionAt(int index) {
         if ((ficheros != null) && (index >= 0)) {
-            if (ficheros.size() > index + 1) {
+            if (ficheros.size() >= index + 1) {
                 FileHeader ficheroActual = ficheros.get(index);
                 return getExtension(ficheroActual.getFileNameString());
             }

@@ -43,5 +43,9 @@ public class FileFilterExtensions implements FileFilter {
         }
         return false;
     }
+    
+    public void empty() {
+        extensions.clear();
+    }
 
 }

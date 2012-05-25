@@ -31,7 +31,7 @@
             var storedPositionTop=false;
             var storedPositionBottom=false;            
             var imagenes = {}; 
-        </script>
+                </script>
 
 
 
@@ -52,7 +52,7 @@
         <div style="text-align:center">
             <form:form  method="post" modelAttribute="pagina">
                 <form:input path="numero" cssStyle="width:25px" id="pageInput"></form:input> of <c:out value="${model.totalPages}" />
-                <input type="submit" value="Go" />
+                    <input type="submit" value="Go" />
             </form:form>
         </div>
         <script type="text/javascript">
@@ -259,7 +259,7 @@
                     }
                 });
                 
-                $("#paginaDiv").touchwipe({
+               $("#paginaDiv").touchwipe({
                     wipeLeft: function() { getNext(); },
                     wipeRight: function() { getPrevious(); },
                     min_move_x: 20,

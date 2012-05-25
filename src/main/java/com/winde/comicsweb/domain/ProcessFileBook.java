@@ -4,36 +4,26 @@
  */
 package com.winde.comicsweb.domain;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import com.sun.pdfview.PDFFile;
-import com.sun.pdfview.PDFImage;
 import com.sun.pdfview.PDFPage;
-import com.sun.pdfview.PDFPrintPage;
-import java.awt.*;
+import com.sun.pdfview.PDFParseException;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.PixelGrabber;
-import java.awt.print.PageFormat;
-import java.awt.print.PrinterException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
-import javax.swing.ImageIcon;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
 
 /**
  *
@@ -43,18 +33,9 @@ public class ProcessFileBook extends ProcessFile {
 
     private File file;
     private PDFFile pdf;
-//    private PDDocument pdfDocument;
-    private PDFPrintPage pagesPrint;
+    int index = 0;
 
-    private ProcessFileBook(File file, PDFFile pdf/*
-             * File file, PDDocument document
-             */, long timeCreation) {
-        /*
-         *
-         * this.pdfDocument = document; pages =
-         * pdfDocument.getDocumentCatalog().getAllPages();
-         *
-         */
+    private ProcessFileBook(File file, PDFFile pdf, long timeCreation) {
         this.pdf = pdf;
         System.out.println("Creating PDF Document List");
         this.file = file;
@@ -66,19 +47,21 @@ public class ProcessFileBook extends ProcessFile {
         try {
             long time = new Date().getTime();
             System.out.println("Creating PDF Document " + fichero.getName());
-            /*
-             * PDDocument document = null; document = PDDocument.load(fichero);
-             * document.getDocument(); System.out.println("Creating PDF Document
-             * " + "DONE "+ (new Date().getTime() - time)); return new
-             * ProcessFileBook(fichero, document, new Date().getTime());
-             */
             RandomAccessFile raf = null;
             raf = new RandomAccessFile(fichero,
                     "r");
             FileChannel channel = raf.getChannel();
             ByteBuffer buffer = null;
             buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            PDFFile pdf = new PDFFile(buffer);
+            PDFFile pdf = null;
+            try {
+                pdf = new PDFFile(buffer);
+            } catch (PDFParseException ex) {
+                System.out.println(ex.getMessage());
+                return null;
+            }
+            channel.close();
+            raf.close();
             return new ProcessFileBook(fichero, pdf, time);
 
         } catch (IOException ex) {
@@ -92,124 +75,54 @@ public class ProcessFileBook extends ProcessFile {
         return "jpg";
     }
 
-    private byte[] getBytes(PDPage page, int index) {
-        /*
-         * BufferedImage bufferedImage = null; BufferedImage resizedImage; long
-         * time;
-         *
-         * time = new Date().getTime(); System.out.println("Extracting image " +
-         * index); try { //bufferedImage = page.convertToImage();
-         *
-         * bufferedImage = page.convertToImage(BufferedImage.TYPE_INT_RGB, 200);
-         *
-         * } catch (IOException ex) {
-         * Logger.getLogger(ProcessFileBook.class.getName()).log(Level.SEVERE,
-         * null, ex); } System.out.println("Extracting image " + index + " DONE
-         * " + (new Date().getTime() - time)); time = new Date().getTime();
-         * System.out.println("Resizing image " + index); //bufferedImage =
-         * Scalr.resize(bufferedImage, 800, 1280); System.out.println("Resizing
-         * image " + index + " DONE " + (new Date().getTime() - time));
-         *
-         * time = new Date().getTime(); System.out.println("Converting image to
-         * Base64 " + index);
-         *
-         * System.out.println("Converting image to Base64 " + " DONE " + (new
-         * Date().getTime() - time)); return salida;
-         */
-        return null;
-    }
-
     private byte[] getBytes(BufferedImage bufferedImage) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream(3000000);
-        ImageOutputStream ios;
-        try {
-            ios = ImageIO.createImageOutputStream(out);
-        } catch (IOException ex) {
-            return null;
-        }
-        try {
-            bufferedImage.createGraphics().drawImage(bufferedImage, 0, 0, null);
-            Iterator iter = ImageIO.getImageWritersByFormatName("jpg");
-            ImageWriter writer = (ImageWriter) iter.next();
-            ImageWriteParam iwp = writer.getDefaultWriteParam();
-
-            iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-            float quality = (float) 0.9;
-            iwp.setCompressionQuality(quality);
-
-            writer.setOutput(ios);
-            writer.write(bufferedImage);
-            //ImageIO.write(bufferedImage, "jpg", out);
-        } catch (IOException ex) {
-            return null;
-        }
-        byte[] salida = out.toByteArray();
-        try {
-            out.close();
-        } catch (IOException ex) {
-            Logger.getLogger(ProcessFileBook.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return salida;
+        return ProcessFile.bytesFromImage(bufferedImage);
     }
 
-    private byte[] getBytes(PDFPrintPage pagesPrint, int index) {
-        try {
-            PDFPage page = pdf.getPage(index);
-            System.out.println(page.getHeight());
-            System.out.println(page.getWidth());
-            BufferedImage bufferedImage = new BufferedImage(573, 789, BufferedImage.TYPE_INT_RGB);
-            pagesPrint.print(bufferedImage.getGraphics(), new PageFormat(), index);
-            return getBytes(bufferedImage);
-        } catch (PrinterException ex) {
-            Logger.getLogger(ProcessFileBook.class.getName()).log(Level.SEVERE, null, ex);
+    private BufferedImage getImageAt(PDFPage page, int index) {
+        if (page == null) {
             return null;
         }
+        Rectangle rect = new Rectangle(0, 0, (int) page.getBBox().getWidth(), (int) page.getBBox().getHeight());
+        Image image = null;
+        try {
+            image = page.getImage(rect.width, rect.height, // width & height
+                    rect, // clip rect 
+                    null, // null for the ImageObserver
+                    true,// fill background with white
+                    true // block until drawing is done 
+                    );
+        } catch (NullPointerException ex) {
+            System.out.println(ex.getMessage());
+            return null;
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            return null;
+        }
+        BufferedImageBuilder builder = new BufferedImageBuilder();
+        BufferedImage bufferedImage = builder.bufferImage(image);
+        return bufferedImage;
     }
 
     private byte[] getBytes(PDFPage page, int index) {
-        Rectangle rect = new Rectangle(0, 0, (int) page.getBBox().getWidth(), (int) page.getBBox().getHeight());
-
-        Image image = page.getImage(rect.width, rect.height, // width & height
-                rect, // clip rect 
-                null, // null for the ImageObserver
-                true,// fill background with white
-                true // block until drawing is done 
-                );
-
-        BufferedImageBuilder builder = new BufferedImageBuilder();
-        BufferedImage bufferedImage = builder.bufferImage(image);
-        return getBytes(bufferedImage);
+        return getBytes(getImageAt(page, index));
     }
 
     @Override
     public String getImg64At(int index) {
-        /*
-         * if (index < this.getCount() && (index >= 0)) {
-         *
-         * PDFPage page = pdf.getPage(index); // get the width and height for
-         * the doc at the default zoom Rectangle rect = new Rectangle(0, 0,
-         * (int) page.getBBox().getWidth(), (int) page.getBBox().getHeight());
-         * // generate the image
-         *
-         * Image image = page.getImage(rect.width, rect.height, // width &
-         * height rect, // clip rect null, // null for the ImageObserver true,
-         * // fill background with white true // block until drawing is done );
-         * System.out.println("WIDTH: " + image.getWidth(null));
-         * System.out.println("HEIGHT: " + image.getHeight(null));
-         *
-         * // save it as a file BufferedImage bufferedImage =
-         * toBufferedImage(image);
-         *
-         * long time = new Date().getTime(); System.out.println("Obtaining image
-         * " + index); PDPage page = (PDPage) pages.get(index);
-         * System.out.println("Obtaining image " + index + " DONE " + (new
-         * Date().getTime() - time)); byte[] bytes = getBytes(page, index); if
-         * (bytes != null) { return Base64.encode(bytes); } else { return null;
-         * } } else { return null; }
-         */
         byte[] bytes = getImgBytesAt(index);
         if (bytes != null) {
-            return Base64.encode(bytes);
+            return Base64.encodeToString(bytes, false);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public BufferedImage getImageAt(int index) {
+        if (index < this.getCount() && (index >= 0)) {
+            PDFPage page = pdf.getPage(index);
+            return getImageAt(page, index);
         } else {
             return null;
         }
@@ -219,7 +132,6 @@ public class ProcessFileBook extends ProcessFile {
     public byte[] getImgBytesAt(int index) {
         if (index < this.getCount() && (index >= 0)) {
             PDFPage page = pdf.getPage(index);
-            //System.out.println("Obtaining image " + index + " DONE " + (new Date().getTime() - time));
             return getBytes(page, index);
         } else {
             return null;
@@ -237,29 +149,23 @@ public class ProcessFileBook extends ProcessFile {
 
     @Override
     public int getCount() {
-        //return pdf.getNumPages();
         return pdf.getNumPages();
     }
 
     @Override
     public boolean hasNext() {
-        /*f (pages != null) {
-            return !pages.isEmpty();
-        } else {
-            return false;
-        }*/return false;
+        return index < this.getCount();
     }
 
     @Override
     public String next() {
-        /*PDFPage page = pages.get(0);
-        pages.remove(0);
-        byte[] bytes = getBytes(page, 0);
-        if (bytes != null) {
-            return Base64.encode(bytes);
+        if (this.hasNext()) {
+            String salida = getImg64At(index);
+            index = index + 1;
+            return salida;
         } else {
             return null;
-        }*/return null;
+        }
     }
 
     @Override
@@ -269,11 +175,5 @@ public class ProcessFileBook extends ProcessFile {
 
     @Override
     public void close() {
-        /*
-         * try { pdfDocument.close(); } catch (IOException ex) {
-         * Logger.getLogger(ProcessFileBook.class.getName()).log(Level.SEVERE,
-         * null, ex); }
-         *
-         */
     }
 }
