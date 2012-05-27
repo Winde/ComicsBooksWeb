@@ -13,6 +13,7 @@ import org.icepdf.core.exceptions.PDFException;
 import org.icepdf.core.exceptions.PDFSecurityException;
 import org.icepdf.core.pobjects.Document;
 import org.icepdf.core.pobjects.Page;
+import org.icepdf.core.util.Defs;
 import org.icepdf.core.util.GraphicsRenderingHints;
 
 /**
@@ -32,6 +33,7 @@ public class ProcessFilePdfIce extends ProcessFile {
 
     public static ProcessFile createProcessFile(File fichero) {
         //Defs.setSystemProperty("org.icepdf.core.scaleImages", "false"); 
+        //Defs.setSystemProperty("org.icepdf.core.awtFontLoading", "true");
         Document document = new Document();
         try {
             document.setFile(fichero.getAbsolutePath());
@@ -58,7 +60,7 @@ public class ProcessFilePdfIce extends ProcessFile {
     public BufferedImage getImageAt(int index) {
         BufferedImage image = null;
         try {
-            image = (BufferedImage) document.getPageImage(index, GraphicsRenderingHints.PRINT, Page.BOUNDARY_CROPBOX, 0f, 1.0f);
+            image = (BufferedImage) document.getPageImage(index, GraphicsRenderingHints.PRINT, Page.BOUNDARY_CROPBOX, 0f, 2.0f);
         } catch (NullPointerException ex) {
             return null;
         }

@@ -5,7 +5,7 @@
 
     <groupId>com.winde</groupId>
     <artifactId>ComicsWeb</artifactId>
-    <version>0.5.2</version>
+    <version>0.5.3</version>
     <packaging>war</packaging>
 
     <name>ComicsWeb</name>
@@ -19,6 +19,7 @@
     
 
     <dependencies>  
+  
         <dependency>
             <groupId>net.java.dev.jai-imageio</groupId>
             <artifactId>jai-imageio-core-standalone</artifactId>
