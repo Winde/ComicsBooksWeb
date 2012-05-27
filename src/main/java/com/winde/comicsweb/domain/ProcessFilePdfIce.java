@@ -56,7 +56,6 @@ public class ProcessFilePdfIce extends ProcessFile {
 
     @Override
     public BufferedImage getImageAt(int index) {
-        System.out.println("Document " + document);
         BufferedImage image = null;
         try {
             image = (BufferedImage) document.getPageImage(index, GraphicsRenderingHints.PRINT, Page.BOUNDARY_CROPBOX, 0f, 1.0f);

@@ -10,6 +10,7 @@ import com.winde.comicsweb.domain.XMLContentRead;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,6 +30,10 @@ public class BrowserController implements Controller {
     @Autowired
     private ResourceBundleMessageSource config;
 
+    public BrowserController() {
+        ImageIO.scanForPlugins();
+    }
+    
     public String getContentType() {
         return contentType;
     }
@@ -51,8 +56,11 @@ public class BrowserController implements Controller {
 
     @Override
     public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, ParserConfigurationException {
-
+            throws ServletException, IOException, ParserConfigurationException {        
+        String [] formats = ImageIO.getReaderFormatNames();
+        for (String s: formats) {
+            System.out.println(s);
+        }
 
         if (contentType != null) {
             String path = "";

@@ -5,7 +5,7 @@
 
     <groupId>com.winde</groupId>
     <artifactId>ComicsWeb</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
     <packaging>war</packaging>
 
     <name>ComicsWeb</name>
@@ -19,7 +19,11 @@
     
 
     <dependencies>  
-    
+        <dependency>
+            <groupId>net.java.dev.jai-imageio</groupId>
+            <artifactId>jai-imageio-core-standalone</artifactId>
+            <version>1.2-pre-dr-b04-2011-07-04</version>
+        </dependency>
         <dependency>
             <groupId>org.icepdf</groupId>
             <artifactId>icepdf-viewer</artifactId>
@@ -168,9 +172,24 @@
             <layout>default</layout>
             <name>Repository for library Library[swing-layout]</name>
         </repository>
-                <repository>
+        <repository>
             <id>IcePdf</id>
             <url>http://anonsvn.icesoft.org/repo/maven2/releases/</url>
         </repository>
+        <repository>
+            <id>com.springsource.repository.bundles.external</id>
+            <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
+            <url>http://repository.springsource.com/maven/bundles/external</url>
+        </repository>
+        <repository>
+            <releases />
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>mygrid-repository</id>
+            <name>myGrid Repository</name>
+            <url>http://www.mygrid.org.uk/maven/repository</url>
+        </repository>
+        
     </repositories>
 </project>
