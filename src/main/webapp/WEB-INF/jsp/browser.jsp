@@ -25,13 +25,6 @@
                 text-decoration:none;
                 color: #000;
             }
-            .icon:hover {
-                opacity: 0.9;
-                text-shadow: 0px 0px 3px #CCC;
-            }   
-            .icon:hover>img {
-                box-shadow: 0px 0px 5px #CCC;
-            }
 
             .contentType {
                 width: 160px;

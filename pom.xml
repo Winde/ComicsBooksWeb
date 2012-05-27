@@ -5,18 +5,33 @@
 
     <groupId>com.winde</groupId>
     <artifactId>ComicsWeb</artifactId>
-    <version>0.5</version>
+    <version>0.5.1</version>
     <packaging>war</packaging>
 
     <name>ComicsWeb</name>
+    
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    
+    
 
     <dependencies>  
-      <dependency>
+    
+        <dependency>
+            <groupId>org.icepdf</groupId>
+            <artifactId>icepdf-viewer</artifactId>
+            <version>4.3.2</version>           
+        </dependency>
+        
+        <dependency>
+            <groupId>org.icepdf</groupId>
+            <artifactId>icepdf-core</artifactId>
+            <version>4.3.2</version>           
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-vfs2</artifactId>
             <version>2.0</version>
@@ -152,6 +167,10 @@
             <id>swing-layout</id>
             <layout>default</layout>
             <name>Repository for library Library[swing-layout]</name>
+        </repository>
+                <repository>
+            <id>IcePdf</id>
+            <url>http://anonsvn.icesoft.org/repo/maven2/releases/</url>
         </repository>
     </repositories>
 </project>

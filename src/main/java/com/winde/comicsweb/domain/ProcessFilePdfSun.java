@@ -10,32 +10,26 @@ import com.sun.pdfview.PDFParseException;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
 
 /**
  *
  * @author Winde
  */
-public class ProcessFileBook extends ProcessFile {
+public class ProcessFilePdfSun extends ProcessFile {
 
     private File file;
     private PDFFile pdf;
     int index = 0;
 
-    private ProcessFileBook(File file, PDFFile pdf, long timeCreation) {
+    private ProcessFilePdfSun(File file, PDFFile pdf, long timeCreation) {
         this.pdf = pdf;
         System.out.println("Creating PDF Document List");
         this.file = file;
@@ -62,10 +56,10 @@ public class ProcessFileBook extends ProcessFile {
             }
             channel.close();
             raf.close();
-            return new ProcessFileBook(fichero, pdf, time);
+            return new ProcessFilePdfSun(fichero, pdf, time);
 
         } catch (IOException ex) {
-            Logger.getLogger(ProcessFileBook.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ProcessFilePdfSun.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }

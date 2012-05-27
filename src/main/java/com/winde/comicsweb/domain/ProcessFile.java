@@ -174,7 +174,7 @@ public abstract class ProcessFile implements Iterator<String> {
         }
         ProcessFile procesador = null;
         if (bookExtensions.contains(extension)) {
-            procesador = ProcessFileBook.createProcessFile(fichero);
+            procesador = ProcessFilePdfIce.createProcessFile(fichero);
             return procesador;
         }
         procesador = ProcessFileZip.createProcesFile(fichero);
