@@ -34,7 +34,7 @@ public class ProcessFileRar extends ProcessFile {
         if (a != null) {
             FileHeader fh = a.nextFileHeader();
             while (fh != null) {
-                if (!fh.isDirectory() && ProcessFile.imgExtensions.contains(getExtension(fh.getFileNameString()))) {
+                if (!fh.isDirectory() && ProcessFile.imgExtensions.contains(getExtension(fh.getFileNameString().toLowerCase()))) {
                     ficheros.add(fh);
                 }
                 fh = a.nextFileHeader();
@@ -45,9 +45,8 @@ public class ProcessFileRar extends ProcessFile {
 
     public static ProcessFile createProcesFile(File fichero) {
         Archive rarPointer = null;
-        System.out.println(fichero.getName());
         try {
-            rarPointer = new Archive(fichero);
+            rarPointer = Archive.createArchive(fichero);
         } catch (RarException ex) {
             Logger.getLogger(ProcessFileRar.class.getName()).log(Level.SEVERE, null, ex);
             return null;

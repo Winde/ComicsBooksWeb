@@ -21,17 +21,18 @@
             }
 
         </style> 
-        <script type="text/javascript">
+        <script type="text/javascript">       
+            var paginaActual = null;
             var urlComic ="<c:url value="" ><c:param name="ruta" value="${param.ruta}"/><c:param name="json" value="true"/></c:url>";	
-            var paginaActual= <c:out value="${param.pagina}"/>; 
             var needsNotice = <c:choose><c:when test="${model.contentType.equals('libros')}" >true;</c:when><c:otherwise>false;</c:otherwise></c:choose>
             var salir = "<c:url value="${model.exit}" ><c:if test="${!model.parentDirectory.equals('')}"><c:param name="ruta" value="${model.parentDirectory}"/></c:if></c:url>";
+            var salirYLeer="<c:url value="/read.htm"><c:param name="ruta" value="${param.ruta}"/><c:param name="read" value="true" /><c:param name="type" value="${model.contentType}"/></c:url>";
             var positionTop=false;
             var positionBottom=false; 
             var storedPositionTop=false;
             var storedPositionBottom=false;            
-            var imagenes = {}; 
-                </script>
+            var imagenes = {};             
+        </script>
 
 
 
@@ -52,10 +53,18 @@
         <div style="text-align:center">
             <form:form  method="post" modelAttribute="pagina">
                 <form:input path="numero" cssStyle="width:25px" id="pageInput"></form:input> of <c:out value="${model.totalPages}" />
-                    <input type="submit" value="Go" />
+                <input type="submit" value="Go" />
             </form:form>
         </div>
         <script type="text/javascript">
+            
+            function setRead(pagina) {
+                var readPageURL = "<c:url value="/readpage.htm"><c:param name="ruta" value="${param.ruta}" /><c:param name="type" value="${model.contentType}" /></c:url>" + "&pagina="+pagina;
+                $.getJSON(readPageURL, null);
+            }
+            
+            
+            
             function prefetch(inc) {
                 var pagina = paginaActual+inc;
                 if ((imagenes[pagina] == undefined) || (imagenes[pagina] == 'clean')) {
@@ -100,14 +109,16 @@
                 $('#loading').show();
                 $('#loading').fadeOut(1000);
                 if (imagenes[pagina] ===null){
-                    window.location=salir;
+                    setRead(pagina+1);
+                    window.location=salirYLeer;
                 } else{ 
-                    if ((imagenes[pagina] != undefined) && (imagenes[pagina]!='clean')) {
+                    if ((imagenes[pagina] != undefined) && (imagenes[pagina]!='clean')) {  
+                        console.log("Set "+ paginaActual);
                         $('#pagina')[0].src=imagenes[pagina];
-                                                
+                        var inputObj = document.getElementById( "pageInput" );                        
                         paginaActual++;
-                        window.scrollTo(0,1);
-                        var inputObj = document.getElementById( "pageInput" ); 
+                        setRead(paginaActual); 
+                        window.scrollTo(0,1);                        
                         if( inputObj ) { 
                             // Update the value 
                             inputObj.value = paginaActual+1; 
@@ -195,8 +206,7 @@
             }
 
        
-            imagenes[paginaActual] = $('#pagina')[0].src;
-
+           
             document.onkeydown = storePositionValues;
             document.onkeyup = handleArrowKeys;
             function ajustar() {
@@ -230,6 +240,11 @@
             
             document.body.onload=function() {
                 ajustar();
+                var inputObj = document.getElementById( "pageInput" );                 
+                paginaActual= <c:choose><c:when test="${param.pagina!=null}"><c:out value="${param.pagina}"/></c:when><c:otherwise>inputObj.value-1</c:otherwise></c:choose>; 
+                console.log(paginaActual);
+                imagenes[paginaActual] = $('#pagina')[0].src;
+
 
                 setTimeout('prefetch(1)',500);
                 if ( $(document).scrollTop()  <= 1) {
@@ -259,7 +274,7 @@
                     }
                 });
                 
-               $("#paginaDiv").touchwipe({
+                $("#paginaDiv").touchwipe({
                     wipeLeft: function() { getNext(); },
                     wipeRight: function() { getPrevious(); },
                     min_move_x: 20,

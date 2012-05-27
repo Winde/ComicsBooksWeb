@@ -5,7 +5,7 @@
 
     <groupId>com.winde</groupId>
     <artifactId>ComicsWeb</artifactId>
-    <version>0.4</version>
+    <version>0.5</version>
     <packaging>war</packaging>
 
     <name>ComicsWeb</name>
@@ -67,6 +67,11 @@
             <artifactId>commons-io</artifactId>
             <version>1.4</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.swinglabs</groupId>
+            <artifactId>swing-layout</artifactId>
+            <version>1.0.3</version>
         </dependency>
         <dependency>
             <groupId>javax</groupId>
@@ -141,5 +146,12 @@
             </plugin>
         </plugins>
     </build>
-
+    <repositories>
+        <repository>
+            <url>http://repo1.maven.org/maven2/</url>
+            <id>swing-layout</id>
+            <layout>default</layout>
+            <name>Repository for library Library[swing-layout]</name>
+        </repository>
+    </repositories>
 </project>

@@ -14,6 +14,7 @@ public class Content implements Serializable {
 
     private String contentType = "";
     private String filename = "";
+    private String read = "false";
 
     public String getContentType() {
         return contentType;
@@ -30,13 +31,21 @@ public class Content implements Serializable {
     public void setFilename(String filename) {
         this.filename = filename;
     }
+    
+    public String getIsRead() {
+        return read;
+    }
 
+    public void setIsRead(String read) {
+       this.read=read;
+    }
     public Content() {
     }
 
-    public Content(String filename, String contentType) {
+    public Content(String filename, String contentType, String read) {
         this.filename = filename;
         this.contentType = contentType;
+        this.read= read;
 
     }
 }

@@ -92,13 +92,17 @@ public class Archive implements Closeable {
      * volume stream data
      * @throws RarException
      */
-    public Archive(VolumeManager volumeManager, UnrarCallback unrarCallback) 
+    public Archive(VolumeManager volumeManager, UnrarCallback unrarCallback)
             throws RarException, IOException {
         this.volumeManager = volumeManager;
         this.unrarCallback = unrarCallback;
 
         setVolume(this.volumeManager.nextArchive(this, null));
         dataIO = new ComprDataIO(this);
+    }
+
+    public static Archive createArchive(File firstVolume) throws RarException, IOException {
+        return new Archive(new FileVolumeManager(firstVolume), null);
     }
 
     public Archive(File firstVolume) throws RarException, IOException {
@@ -126,9 +130,9 @@ public class Archive implements Closeable {
         try {
             readHeaders(length);
         } catch (Exception e) {
-            logger.log(Level.WARNING,
-                    "exception in archive constructor maybe file is encrypted "
-                    + "or currupt", e);
+            //logger.log(Level.WARNING,
+            //        "exception in archive constructor maybe file is encrypted "
+            //        + "or currupt", e);
             // ignore exceptions to allow exraction of working files in
             // corrupt archive
 
@@ -174,6 +178,7 @@ public class Archive implements Closeable {
 
     public FileHeader nextFileHeader() {
         int n = headers.size();
+
         while (currentHeaderIndex < n) {
             BaseBlock block = headers.get(currentHeaderIndex++);
             if (block.getHeaderType() == UnrarHeadertype.FileHeader) {
@@ -234,7 +239,13 @@ public class Archive implements Closeable {
                 throw new IOException();
             }
             block.setPositionInFile(position);
-            
+            if (block == null) {
+                throw new RarException(RarExceptionType.unkownError);
+            }
+            if (block.getHeaderType() == null) {
+                throw new RarException(RarExceptionType.unkownError);
+            }
+
             switch (block.getHeaderType()) {
 
                 case MarkHeader:
@@ -360,7 +371,7 @@ public class Archive implements Closeable {
                                     SubBlockHeader.SubBlockHeaderSize);
                             SubBlockHeader subHead = new SubBlockHeader(blockHead,
                                     subHeadbuffer);
-                            subHead.print();
+                            //subHead.print();
                             switch (subHead.getSubType()) {
                                 case MAC_HEAD: {
                                     byte[] macHeaderbuffer = new byte[MacInfoHeader.MacInfoHeaderSize];
@@ -368,7 +379,7 @@ public class Archive implements Closeable {
                                             MacInfoHeader.MacInfoHeaderSize);
                                     MacInfoHeader macHeader = new MacInfoHeader(subHead,
                                             macHeaderbuffer);
-                                    macHeader.print();
+                                    //macHeader.print();
                                     headers.add(macHeader);
 
                                     break;
@@ -381,7 +392,7 @@ public class Archive implements Closeable {
                                     rof.readFully(eaHeaderBuffer, EAHeader.EAHeaderSize);
                                     EAHeader eaHeader = new EAHeader(subHead,
                                             eaHeaderBuffer);
-                                    eaHeader.print();
+                                    //eaHeader.print();
                                     headers.add(eaHeader);
 
                                     break;
@@ -399,7 +410,7 @@ public class Archive implements Closeable {
                                     rof.readFully(uoHeaderBuffer, toRead);
                                     UnixOwnersHeader uoHeader = new UnixOwnersHeader(
                                             subHead, uoHeaderBuffer);
-                                    uoHeader.print();
+                                    //uoHeader.print();
                                     headers.add(uoHeader);
                                     break;
                                 default:

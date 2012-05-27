@@ -139,7 +139,7 @@ public class ThumbsController {
                     if (bytes != null) {
                         try {
 
-                            response.setContentType("image/" + "jpg");
+                            response.setContentType("image/" + "jpeg");
                             response.setContentLength(bytes.length);
                             response.addHeader("Content-Disposition", "attachment; filename=\"" + pathThumbnail + '"');
                             response.getOutputStream().write(bytes);

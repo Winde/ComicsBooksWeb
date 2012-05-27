@@ -111,8 +111,14 @@ public abstract class ProcessFile implements Iterator<String> {
         }
         int width = pg.getWidth(), height = pg.getHeight();
         DataBuffer buffer = new DataBufferInt((int[]) pg.getPixels(), pg.getWidth() * pg.getHeight());
-        WritableRaster raster = Raster.createPackedRaster(buffer, width, height, width, RGB_MASKS, null);
-        BufferedImage bi = new BufferedImage(RGB_OPAQUE, raster, false, null);
+        BufferedImage bi;
+        try {
+            WritableRaster raster = Raster.createPackedRaster(buffer, width, height, width, RGB_MASKS, null);
+            bi = new BufferedImage(RGB_OPAQUE, raster, false, null);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+
         return bi;
     }
 
@@ -167,19 +173,19 @@ public abstract class ProcessFile implements Iterator<String> {
             extension = extension.toLowerCase();
         }
         ProcessFile procesador = null;
-        procesador = ProcessFileZip.createProcesFile(fichero);
-        if (procesador != null) {
-            return procesador;
-        }
         if (bookExtensions.contains(extension)) {
             procesador = ProcessFileBook.createProcessFile(fichero);
             return procesador;
         }
-
-        if (rarExtensions.contains(extension)) {
-            procesador = ProcessFileRar.createProcesFile(fichero);
+        procesador = ProcessFileZip.createProcesFile(fichero);
+        if (procesador != null) {
             return procesador;
         }
+        procesador = ProcessFileRar.createProcesFile(fichero);
+        if (procesador != null) {
+            return procesador;
+        }
+
 
         return null;
     }

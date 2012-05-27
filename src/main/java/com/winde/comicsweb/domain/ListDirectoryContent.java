@@ -25,6 +25,10 @@ public class ListDirectoryContent {
         filter = new FileFilterExtensions();
     }
 
+    public boolean pathExists() {
+        return (dir.exists() && dir.isDirectory());
+    }
+    
     public File[] listFiles() {
         return dir.listFiles();
     }

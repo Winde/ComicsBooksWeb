@@ -39,7 +39,7 @@ public class ProcessFileZip extends ProcessFile {
         while (entries.hasMoreElements()) {
             temp = entries.nextElement();
             if (getExtension(temp.getName()) != null) {
-                if (ProcessFile.imgExtensions.contains(getExtension(temp.getName()))) {
+                if (ProcessFile.imgExtensions.contains(getExtension(temp.getName().toLowerCase()))) {
                     entriesList.add(temp);
                 }
             }
