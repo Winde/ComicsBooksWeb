@@ -5,7 +5,6 @@
 package com.winde.comicsweb.domain;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +16,6 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
-import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 
 /**

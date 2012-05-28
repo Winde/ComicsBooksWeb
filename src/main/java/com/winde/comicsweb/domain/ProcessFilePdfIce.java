@@ -15,6 +15,7 @@ import org.icepdf.core.pobjects.Document;
 import org.icepdf.core.pobjects.Page;
 import org.icepdf.core.util.Defs;
 import org.icepdf.core.util.GraphicsRenderingHints;
+import org.imgscalr.Scalr;
 
 /**
  *
@@ -32,12 +33,12 @@ public class ProcessFilePdfIce extends ProcessFile {
     }
 
     public static ProcessFile createProcessFile(File fichero) {
-        //Defs.setSystemProperty("org.icepdf.core.scaleImages", "false"); 
+        Defs.setSystemProperty("org.icepdf.core.scaleImages", "false");
         //Defs.setSystemProperty("org.icepdf.core.awtFontLoading", "true");
         Document document = new Document();
         try {
             document.setFile(fichero.getAbsolutePath());
-            
+
         } catch (PDFException ex) {
             Logger.getLogger(ProcessFilePdfIce.class.getName()).log(Level.SEVERE, null, ex);
             return null;
@@ -60,8 +61,10 @@ public class ProcessFilePdfIce extends ProcessFile {
     public BufferedImage getImageAt(int index) {
         BufferedImage image = null;
         try {
-            image = (BufferedImage) document.getPageImage(index, GraphicsRenderingHints.PRINT, Page.BOUNDARY_CROPBOX, 0f, 2.0f);
+            image = (BufferedImage) document.getPageImage(index, GraphicsRenderingHints.SCREEN, Page.BOUNDARY_CROPBOX, 0f, 2.0f);
         } catch (NullPointerException ex) {
+            System.out.println(ex.getMessage());
+            Logger.getLogger(ProcessFilePdfIce.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
         return image;
@@ -81,6 +84,7 @@ public class ProcessFilePdfIce extends ProcessFile {
     public byte[] getImgBytesAt(int index) {
         BufferedImage image = getImageAt(index);
         if (image == null) {
+            System.out.println("ICEPdf could not render image at index "+index);    
             return null;
         } else {
             return ProcessFile.bytesFromImage(image);
@@ -105,7 +109,11 @@ public class ProcessFilePdfIce extends ProcessFile {
 
     @Override
     public void close() {
-        document.dispose();
+        System.out.println("Procesador de fichero: " + fichero.getName() + " liberado");
+        if (document != null) {
+            document.dispose();
+            document = null;
+        }
     }
 
     @Override
@@ -121,12 +129,18 @@ public class ProcessFilePdfIce extends ProcessFile {
     }
 
     @Override
-    protected void finalize() throws Throwable {
-
-        super.finalize();
-
-        if (document != null) {
-            document.dispose();
+    public BufferedImage getThumbAt(int index, int dimension) {
+        BufferedImage image = null;
+        try {
+            image = (BufferedImage) document.getPageImage(index, GraphicsRenderingHints.PRINT, Page.BOUNDARY_CROPBOX, 0f, 1.0f);
+        } catch (NullPointerException ex) {
+            return null;
+        }
+        if (image == null) {
+            return null;
+        } else {
+            image = Scalr.resize(image, dimension);
+            return image;
         }
     }
 }

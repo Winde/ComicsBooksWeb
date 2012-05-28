@@ -18,6 +18,7 @@ import java.nio.channels.FileChannel;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.imgscalr.Scalr;
 
 /**
  *

@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import javax.imageio.*;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
+import org.imgscalr.Scalr;
 
 /**
  *
@@ -175,7 +176,12 @@ public abstract class ProcessFile implements Iterator<String> {
         ProcessFile procesador = null;
         if (bookExtensions.contains(extension)) {
             procesador = ProcessFilePdfIce.createProcessFile(fichero);
-            return procesador;
+            if (procesador == null) {
+                System.out.println(fichero.getName() + " Pdf unsupported by PDFIce");
+                return ProcessFilePdfBox.createProcesFile(fichero);
+            } else {
+                return procesador;
+            }                
         }
         procesador = ProcessFileZip.createProcesFile(fichero);
         if (procesador != null) {
@@ -198,6 +204,15 @@ public abstract class ProcessFile implements Iterator<String> {
     }
 
     public abstract BufferedImage getImageAt(int index);
+
+    public BufferedImage getThumbAt(int index, int dimension) {
+        BufferedImage image = this.getImageAt(index);
+        if (image != null) {
+            return Scalr.resize(image, dimension);
+        } else {
+            return null;
+        }
+    }
 
     public abstract String getImg64At(int index);
 
@@ -227,5 +242,12 @@ public abstract class ProcessFile implements Iterator<String> {
         } else {
             return false;
         }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+
+        super.finalize();
+        this.close();
     }
 }

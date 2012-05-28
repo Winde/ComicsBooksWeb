@@ -4,6 +4,7 @@
  */
 package com.winde.comicsweb.web;
 
+import com.winde.comicsweb.domain.ListDirectoryContent;
 import com.winde.comicsweb.domain.Pagina;
 import com.winde.comicsweb.domain.ProcessFile;
 import com.winde.comicsweb.domain.XMLContentRead;
@@ -15,10 +16,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.parsers.ParserConfigurationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -39,6 +44,7 @@ public class ContentController {
     private String htmExitRoute;
     private String pathAlias;
     private String basePath;
+    public static String readlastFunctionality = null;
 
     public ResourceBundleMessageSource getConfig() {
         return config;
@@ -132,12 +138,16 @@ public class ContentController {
         }
     }
 
-    private boolean isLastPageReadActivated() {
-        String readFunctionality = config.getMessage("keepLastRead", null, Locale.getDefault());
-        if (readFunctionality != null) {
-            return readFunctionality.equals("true");
+    private boolean isLastPageReadFunctionalityActivated() {
+        if (ContentController.readlastFunctionality == null) {
+            String readFunctionality = config.getMessage("keepLastRead", null, Locale.getDefault());
+            if (readFunctionality != null) {
+                return readFunctionality.equals("true");
+            } else {
+                return false;
+            }
         } else {
-            return false;
+            return (!readlastFunctionality.equals("false"));
         }
     }
 
@@ -145,17 +155,13 @@ public class ContentController {
         ProcessFile procesadorArchivo = (ProcessFile) session.getAttribute("procesador");
         if (procesadorArchivo == null) {
             procesadorArchivo = ProcessFile.createProcesFile(fichero);
-            session.setAttribute("procesador", procesadorArchivo);
-            System.out.println("Nuevo Procesador: Sesion es null - " + fichero.getName());
+            System.out.println("Nuevo Procesador: Sesion es null - " + fichero.getName() + " " + procesadorArchivo.getClass());
         } else {
             if (!fichero.getAbsolutePath().equals(procesadorArchivo.getFileName())) {
-                System.out.println("Fichero: " + fichero.getAbsolutePath());
-                System.out.println(procesadorArchivo.getFileName());
                 procesadorArchivo.close();
                 procesadorArchivo = ProcessFile.createProcesFile(fichero);
-                System.out.println("Nuevo Procesador: Procesador de diferente archivo - " + fichero.getName());
+                System.out.println("Nuevo Procesador: Procesador de diferente archivo - " + fichero.getName() + " " + procesadorArchivo.getClass());
             } else {
-                System.out.println("Reusando Procesador - " + fichero.getName());
             }
         }
         if (procesadorArchivo == null) {
@@ -164,9 +170,68 @@ public class ContentController {
         return procesadorArchivo;
     }
 
+    private File[] getFiles(String directory) {
+        if (contentType == null) {
+            return null;
+        } else {
+            ListDirectoryContent listador = new ListDirectoryContent(directory);
+            String[] extensions = null;
+            if (contentType.contains("comic")) {
+                extensions = BrowserController.getComicExtensions();
+            }
+            if (contentType.contains("libro")) {
+                extensions = BrowserController.getBookExtensions();
+            }
+            if (extensions != null) {
+                for (String s : extensions) {
+                    listador.addExtensiontoFilter(s);
+                }
+                return listador.listFilteredFiles();
+            }
+        }
+        return null;
+    }
+
+    @RequestMapping(value = {"/lastreadfunction.htm"}, method = RequestMethod.GET)
+    public ModelAndView setReadFunction(HttpServletRequest request, HttpServletResponse response, HttpSession session)
+            throws ServletException, IOException, ParserConfigurationException {
+        String ruta = request.getParameter("ruta");
+        setContentType(request);
+        if (contentType != null) {
+            String path = getPath(ruta);
+            String lastread = request.getParameter("lastread");
+            if (lastread != null) {
+                if (lastread.equals("true") || lastread.equals("false")) {
+                    ContentController.readlastFunctionality = lastread;
+                }
+                if (lastread.equals("wipe")) {
+                    File fichero = new File(path);
+                    if (fichero.isDirectory()) {
+                        File ficheroXML = new File(path + "/" + BrowserController.getReadFilename());
+                        if (ficheroXML.exists()) {
+                            XMLContentRead readfileXML = XMLContentRead.createXMLContentRead(ficheroXML.getAbsolutePath());
+                            if (readfileXML != null) {
+                                File[] files = getFiles(path);
+                                for (File file : files) {
+                                    readfileXML.setFileLastPage(file.getName(), 0);
+                                    readfileXML.flush();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (ruta != null) {
+            return new ModelAndView("redirect:" + htmExitRoute + "?ruta=" + URLEncoder.encode(ruta, "UTF-8"));
+        } else {
+            return new ModelAndView("redirect:" + htmExitRoute);
+        }
+    }
+
     @RequestMapping(value = {"readpage.htm"}, method = RequestMethod.GET)
     public void setReadPage(HttpServletRequest request, HttpServletResponse response, Pagina command, BindingResult bindingResult, HttpSession session) throws Exception {
-        if (isLastPageReadActivated()) {
+        if (isLastPageReadFunctionalityActivated()) {
             String page = request.getParameter("pagina");
             if (page != null) {
                 Integer pageNum = null;
@@ -187,10 +252,8 @@ public class ContentController {
                             readfileXML.setFileLastPage(comicName, pageNum);
                             readfileXML.flush();
                         } else {
-                            if (lastReadPage.compareTo(pageNum) < 0) {
-                                readfileXML.setFileLastPage(comicName, pageNum);
-                                readfileXML.flush();
-                            }
+                            readfileXML.setFileLastPage(comicName, pageNum);
+                            readfileXML.flush();
                         }
                     }
                 }
@@ -218,23 +281,43 @@ public class ContentController {
             if (leido.equals("false")) {
                 leidoBoolean = Boolean.FALSE;
             }
+            File fichero = new File(path);
             if (leidoBoolean != null) {
-                File readfile = new File(parentDirectoryFullPath + "/" + BrowserController.getReadFilename());
-                if (readfile.exists()) {
-                    XMLContentRead readfileXML = XMLContentRead.createXMLContentRead(readfile.getAbsolutePath());
-                    if (readfileXML != null) {
-                        readfileXML.setFileRead(comicName, leidoBoolean);
-                        readfileXML.flush();
+                if (fichero.isDirectory()) {
+                    File readfile = new File(path + "/" + BrowserController.getReadFilename());
+                    if (readfile.exists()) {
+                        XMLContentRead readfileXML = XMLContentRead.createXMLContentRead(readfile.getAbsolutePath());
+                        if (readfileXML != null) {
+                            File[] files = getFiles(path);
+                            for (File f : files) {
+                                readfileXML.setFileRead(f.getName(), leidoBoolean);
+                            }
+                            readfileXML.flush();
+                        }
+                    }
+                    String ruta = request.getParameter("ruta");
+                    if ((ruta == null) || ruta.equals("")) {
+                        return new ModelAndView("redirect:" + htmExitRoute);
+                    } else {
+                        return new ModelAndView("redirect:" + htmExitRoute + "?ruta=" + URLEncoder.encode(ruta, "UTF-8"));
+                    }
+                } else {
+                    File readfile = new File(parentDirectoryFullPath + "/" + BrowserController.getReadFilename());
+                    if (readfile.exists()) {
+                        XMLContentRead readfileXML = XMLContentRead.createXMLContentRead(readfile.getAbsolutePath());
+                        if (readfileXML != null) {
+                            readfileXML.setFileRead(comicName, leidoBoolean);
+                            readfileXML.flush();
+                        }
                     }
                 }
             }
         }
         return new ModelAndView("redirect:" + htmExitRoute + "?ruta=" + URLEncoder.encode(parentDirectory, "UTF-8"));
     }
-    
-        @RequestMapping(value = "/image.htm", method = RequestMethod.GET)
-    public void getImage(HttpServletRequest request, final HttpServletResponse response, HttpSession session) {
 
+    @RequestMapping(value = "/image.htm", method = RequestMethod.GET)
+    public void getImage(HttpServletRequest request, final HttpServletResponse response, HttpSession session) {
 
         setContentType(request);
         if (contentType != null) {
@@ -269,6 +352,8 @@ public class ContentController {
 
                 response.getOutputStream().write(imgBytes);
                 response.getOutputStream().flush();
+
+
             } catch (IOException ex) {
                 Logger.getLogger(ContentController.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -276,7 +361,6 @@ public class ContentController {
         }
 
     }
-    
 
     @RequestMapping(value = {"/comic.htm", "/libro.htm"}, method = RequestMethod.GET)
     public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response, Pagina command, BindingResult bindingResult, HttpSession session) throws Exception {
@@ -286,7 +370,7 @@ public class ContentController {
         String parentDirectoryFullPath = getParentDirectory(path);
         File fichero = new File(path);
         Map<String, Object> myModel = new HashMap<String, Object>();
-        ProcessFile procesadorArchivo = getProcessFile(fichero, session);        
+        ProcessFile procesadorArchivo = getProcessFile(fichero, session);
         String pagina = request.getParameter("pagina");
         int paginaNum = 0;
         if (pagina != null) {
@@ -296,12 +380,11 @@ public class ContentController {
                 paginaNum = 0;
             }
         }
-        if (isLastPageReadActivated()) {
+        if (isLastPageReadFunctionalityActivated()) {
             if (request.getParameter("json") == null) {
                 XMLContentRead readfileXML = XMLContentRead.createXMLContentRead(parentDirectoryFullPath + "/" + BrowserController.getReadFilename());
                 if (readfileXML != null) {
                     Integer lastPageRead = readfileXML.getLastReadPage(fichero.getName());
-                    System.out.println("lastPageRead " + lastPageRead + " paginaNum " + paginaNum);
                     if (lastPageRead == null) {
                         readfileXML.setFileLastPage(fichero.getName(), paginaNum);
                         readfileXML.flush();
@@ -314,8 +397,6 @@ public class ContentController {
                                 readfileXML.flush();
                             }
                         } else {
-                            System.out.println("PaginaNum " + paginaNum);
-                            System.out.println("LastPageRead " + lastPageRead);
                             if (paginaNum > lastPageRead.intValue()) {
                                 readfileXML.setFileLastPage(fichero.getName(), paginaNum);
                                 readfileXML.flush();
@@ -335,9 +416,14 @@ public class ContentController {
                 extension = "jpeg";
             }
         }
-        String imagen = procesadorArchivo.getImg64At(paginaNum);
         String parentDirectory = getParentDirectory(request.getParameter("ruta"));
         String comicName = getContentName(request.getParameter("ruta"));
+        String imagen = procesadorArchivo.getImg64At(paginaNum);
+
+        if (imagen == null) {
+            System.out.println("Could not render image from file " + comicName + " page " + paginaNum);
+        }
+
 
         System.out.println(path
                 + " " + procesadorArchivo);
@@ -351,7 +437,6 @@ public class ContentController {
             myModel.put("command", command);
             myModel.put("totalPages", procesadorArchivo.getCount());
             myModel.put("contentType", contentType);
-
         }
 
         if (request.getParameter("json") != null) {

@@ -5,7 +5,7 @@
 
     <groupId>com.winde</groupId>
     <artifactId>ComicsWeb</artifactId>
-    <version>0.5.3</version>
+    <version>0.6.1</version>
     <packaging>war</packaging>
 
     <name>ComicsWeb</name>
@@ -18,12 +18,11 @@
     
     
 
-    <dependencies>  
-  
+    <dependencies> 
         <dependency>
-            <groupId>net.java.dev.jai-imageio</groupId>
-            <artifactId>jai-imageio-core-standalone</artifactId>
-            <version>1.2-pre-dr-b04-2011-07-04</version>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>1.6.0</version>
         </dependency>
         <dependency>
             <groupId>org.icepdf</groupId>

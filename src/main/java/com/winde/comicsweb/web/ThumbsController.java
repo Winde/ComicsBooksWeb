@@ -11,6 +11,7 @@ import java.io.*;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -48,13 +49,12 @@ public class ThumbsController {
         if (procesador == null) {
             return null;
         }
-        BufferedImage image = procesador.getImageAt(0);
+        BufferedImage image = procesador.getThumbAt(0, 256);
         procesador.close();
         if (image == null) {
             return null;
         }
-        BufferedImage resize = Scalr.resize(image, 256);
-        return ProcessFile.bytesFromImage(resize);
+        return ProcessFile.bytesFromImage(image);
     }
 
     @RequestMapping(value = "/thumb.htm", method = RequestMethod.GET)
