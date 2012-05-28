@@ -4,27 +4,23 @@
  */
 package com.winde.comicsweb.web;
 
-import com.winde.comicsweb.domain.ListDirectoryContent;
-import com.winde.comicsweb.domain.Pagina;
-import com.winde.comicsweb.domain.ProcessFile;
-import com.winde.comicsweb.domain.XMLContentRead;
+import com.winde.comicsweb.domain.*;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.xml.parsers.ParserConfigurationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,18 +36,20 @@ public class ContentController {
 
     private String contentType;
     @Autowired
-    private ResourceBundleMessageSource config;
-    private String htmExitRoute;
-    private String pathAlias;
-    private String basePath;
-    public static String readlastFunctionality = null;
+    private Config config;
 
-    public ResourceBundleMessageSource getConfig() {
+    public Config getConfig() {
         return config;
     }
 
-    public void setConfig(ResourceBundleMessageSource config) {
+    public void setConfig(Config config) {
         this.config = config;
+    }
+    private String htmExitRoute;
+    private String pathAlias;
+    private String basePath;
+
+    public ContentController() {
     }
 
     public String getContentType() {
@@ -103,7 +101,7 @@ public class ContentController {
                 pathAlias = "pathLibros";
                 htmExitRoute = "libros.htm";
             }
-            String path = config.getMessage(pathAlias, null, Locale.getDefault());
+            String path = config.getConfigValue(pathAlias);
             basePath = path;
             if (ruta != null) {
                 if (!ruta.trim().equals("")) {
@@ -139,15 +137,11 @@ public class ContentController {
     }
 
     private boolean isLastPageReadFunctionalityActivated() {
-        if (ContentController.readlastFunctionality == null) {
-            String readFunctionality = config.getMessage("keepLastRead", null, Locale.getDefault());
-            if (readFunctionality != null) {
-                return readFunctionality.equals("true");
-            } else {
-                return false;
-            }
+        String readFunctionality = config.getConfigValue("keepLastRead");
+        if (readFunctionality != null) {
+            return readFunctionality.equals("true");
         } else {
-            return (!readlastFunctionality.equals("false"));
+            return true;
         }
     }
 
@@ -202,7 +196,7 @@ public class ContentController {
             String lastread = request.getParameter("lastread");
             if (lastread != null) {
                 if (lastread.equals("true") || lastread.equals("false")) {
-                    ContentController.readlastFunctionality = lastread;
+                    config.setConfigValue("keepLastRead", lastread);
                 }
                 if (lastread.equals("wipe")) {
                     File fichero = new File(path);
@@ -354,6 +348,8 @@ public class ContentController {
                 response.getOutputStream().flush();
 
 
+
+
             } catch (IOException ex) {
                 Logger.getLogger(ContentController.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -450,7 +446,7 @@ public class ContentController {
                 procesadorArchivo.close();
             }
             session.setAttribute("procesador", null);
-            return new ModelAndView("redirect:" + htmExitRoute + "?ruta=" + URLEncoder.encode(fichero.getParent().replace(config.getMessage(pathAlias, null, Locale.getDefault()), ""), "UTF-8"));
+            return new ModelAndView("redirect:" + htmExitRoute + "?ruta=" + URLEncoder.encode(fichero.getParent().replace(config.getConfigValue(pathAlias), "UTF-8")));
         }
         ModelAndView vista = new ModelAndView("content", "model", myModel);
         return vista;

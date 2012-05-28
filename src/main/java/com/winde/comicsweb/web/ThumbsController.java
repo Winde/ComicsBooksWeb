@@ -4,20 +4,20 @@
  */
 package com.winde.comicsweb.web;
 
+import com.winde.comicsweb.domain.Config;
 import com.winde.comicsweb.domain.ListDirectoryContent;
 import com.winde.comicsweb.domain.ProcessFile;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.Locale;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -30,14 +30,18 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class ThumbsController {
 
     @Autowired
-    private ResourceBundleMessageSource config;
+    private Config config;
 
-    public ResourceBundleMessageSource getConfig() {
+    public Config getConfig() {
         return config;
     }
 
-    public void setConfig(ResourceBundleMessageSource config) {
+    public void setConfig(Config config) {
         this.config = config;
+    }
+
+    public ThumbsController() {
+           
     }
 
     private byte[] createThumb(String pathFile, String pathThumb) {
@@ -81,7 +85,7 @@ public class ThumbsController {
                     pathAlias = "pathLibros";
                     htmExitRoute = "libros.htm";
                 }
-                String path = config.getMessage(pathAlias, null, Locale.getDefault());
+                String path = config.getConfigValue(pathAlias);
 
                 String ruta = request.getParameter("ruta");
                 if (ruta != null) {

@@ -4,10 +4,8 @@
  */
 package com.winde.comicsweb.web;
 
-import com.winde.comicsweb.domain.Content;
-import com.winde.comicsweb.domain.ListDirectoryContent;
-import com.winde.comicsweb.domain.ProcessFile;
-import com.winde.comicsweb.domain.XMLContentRead;
+import com.winde.comicsweb.domain.Config;
+import com.winde.comicsweb.domain.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -20,7 +18,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -35,7 +32,15 @@ public class BrowserController {
     private String pathAlias;
     private String htmExitRoute;
     @Autowired
-    private ResourceBundleMessageSource config;
+    private Config config;
+
+    public Config getConfig() {
+        return config;
+    }
+
+    public void setConfig(Config config) {
+        this.config = config;
+    }
 
     public BrowserController() {
         ImageIO.scanForPlugins();
@@ -47,14 +52,6 @@ public class BrowserController {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
-    }
-
-    public ResourceBundleMessageSource getConfig() {
-        return config;
-    }
-
-    public void setConfig(ResourceBundleMessageSource config) {
-        this.config = config;
     }
 
     public static String getReadFilename() {
@@ -94,10 +91,10 @@ public class BrowserController {
             String path = "";
 
             if (contentType.equals("comics")) {
-                path = config.getMessage("pathComics", null, Locale.getDefault());
+                path = config.getConfigValue("pathComics");
             }
             if (contentType.equals("libros")) {
-                path = config.getMessage("pathLibros", null, Locale.getDefault());
+                path = config.getConfigValue("pathLibros");
             }
 
             String ruta = request.getParameter("ruta");
@@ -106,8 +103,17 @@ public class BrowserController {
             }
             ListDirectoryContent listaFicheros = new ListDirectoryContent(path);
             if (!listaFicheros.pathExists()) {
-                System.out.println("Path no existe");
-                return null;
+                Map<String, Object> myModel = new HashMap<String, Object>();
+                
+                myModel.put("parentDirectory", null);
+                myModel.put("contentType", contentType);
+                String readlastFunctionality = config.getConfigValue("keepLastRead");
+                if (readlastFunctionality == null) {
+                    readlastFunctionality = "true";
+                }
+                myModel.put("keepLastRead", readlastFunctionality);
+                ModelAndView vista = new ModelAndView("browser", "model", myModel);
+                return vista;
             }
             File[] directoriosArray = listaFicheros.listDirectories();
             List<String> directorios = new ArrayList<String>();
@@ -170,10 +176,11 @@ public class BrowserController {
             myModel.put("ficheros", ficheros);
             myModel.put("parentDirectory", parentDirectory);
             myModel.put("contentType", contentType);
-            if (ContentController.readlastFunctionality == null) {
-                ContentController.readlastFunctionality = config.getMessage("keepLastRead", null, Locale.getDefault());
+            String readlastFunctionality = config.getConfigValue("keepLastRead");
+            if (readlastFunctionality == null) {
+                readlastFunctionality = "true";
             }
-            myModel.put("keepLastRead", ContentController.readlastFunctionality);
+            myModel.put("keepLastRead", readlastFunctionality);
             ModelAndView vista = new ModelAndView("browser", "model", myModel);
             return vista;
         }

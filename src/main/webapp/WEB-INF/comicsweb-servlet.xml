@@ -8,13 +8,18 @@ http://www.springframework.org/schema/beans/spring-beans.xsd
 http://www.springframework.org/schema/context
 http://www.springframework.org/schema/context/spring-context.xsd">
 
-
-    <!-- the application context definition for the springapp DispatcherServlet -->
-    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
-        <property name="basename" value="messages"/>
+    <bean id="datasource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" lazy-init="true">
+        <property name="driverClassName" value="org.sqlite.JDBC" />
+        <property name="url" value="jdbc:sqlite:comicsbooksweb.db" />
+        <property name="initialSize" value="2" />
+        <property name="maxActive" value="20" />
+        <property name="maxIdle" value="5" />
+        <property name="poolPreparedStatements" value="false" />
     </bean>
-
-
+    
+    <bean id="config" class="com.winde.comicsweb.domain.Config" >
+        <property name="datasource" ref="datasource" />        
+    </bean>
 
     <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
@@ -41,5 +46,7 @@ http://www.springframework.org/schema/context/spring-context.xsd">
     </bean>
     -->
     <context:component-scan base-package="com.winde.comicsweb.web" />
+    
+    <context:annotation-config />
     
 </beans>
