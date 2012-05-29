@@ -431,6 +431,7 @@ public class ContentController {
             myModel.put("contentName", comicName);
             myModel.put("exit", htmExitRoute);
             myModel.put("command", command);
+            myModel.put("pagina",paginaNum);
             myModel.put("totalPages", procesadorArchivo.getCount());
             myModel.put("contentType", contentType);
         }

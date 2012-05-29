@@ -5,7 +5,7 @@
 
     <groupId>com.winde</groupId>
     <artifactId>ComicsWeb</artifactId>
-    <version>0.7</version>
+    <version>0.7.1</version>
     <packaging>war</packaging>
 
     <name>ComicsWeb</name>
@@ -19,7 +19,11 @@
     
 
     <dependencies> 
-    
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20090211</version>
+        </dependency>
         <dependency>
             <groupId>commons-dbcp</groupId>
             <artifactId>commons-dbcp</artifactId>
@@ -63,16 +67,6 @@
             <groupId>com.kenai.nbpwr</groupId>
             <artifactId>com-sun-pdfview</artifactId>
             <version>1.0.5-201003191900</version>
-        </dependency>
-        <dependency> 
-            <groupId>org.codehaus.jackson</groupId> 
-            <artifactId>jackson-core-asl</artifactId> 
-            <version>1.9.7</version> 
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>1.9.7</version>   
         </dependency>
         <dependency> 
             <groupId>commons-logging</groupId> 

@@ -31,7 +31,7 @@
             var positionBottom=false; 
             var storedPositionTop=false;
             var storedPositionBottom=false;            
-            var imagenes = {};             
+            var imagenes = {};
         </script>
 
 
@@ -69,30 +69,34 @@
                 var pagina = paginaActual+inc;
                 if ((imagenes[pagina] == undefined) || (imagenes[pagina] == 'clean')) {
                     delete imagenes[pagina];
-                    $.getJSON(urlComic+'&pagina='+pagina, function(data) {
-                        if (imagenes[pagina] != undefined) {
-					
-
+                    imagenes[pagina] = 'prefetch';
+                    $.getJSON(urlComic+'&pagina='+pagina, function(data) {      
+                        if ((imagenes[pagina] != undefined) && (imagenes[pagina]!='prefetch')) {
+				
                         } else {
-                            if (data['imagen'] === null) {
+                            if ((data['imagen'] === null) && data['pagina'] == pagina) {
                                 imagenes[pagina] = null;
                             } else {
-                                var imagen = "data:image/"+data['extension']+";base64,"+data['imagen'];                                
-                                imagenes[pagina] = imagen;                          
-                                if (pagina == paginaActual+1) {
-                                    $('#bgFaderRight').fadeIn("slow", function(){
-                                        $('#bgFaderRight').fadeOut('slow',function(){
-                                            $('#bgFaderRight').stop(true,true);
+                                if (data['pagina']!=pagina) {
+                                    delete imagenes[pagina];
+                                } else {
+                                    var imagen = "data:image/"+data['extension']+";base64,"+data['imagen'];                                       
+                                    imagenes[pagina] = imagen;                          
+                                    if (pagina == paginaActual+1) {
+                                        $('#bgFaderRight').fadeIn("slow", function(){
+                                            $('#bgFaderRight').fadeOut('slow',function(){
+                                                $('#bgFaderRight').stop(true,true);
+                                            });
                                         });
-                                    });
-                                }
-                                if (pagina == paginaActual-1) {
-                                    $('#bgFaderLeft').fadeIn("slow", function(){
-                                        $('#bgFaderLeft').fadeOut('slow',function(){
-                                            $('#bgFaderLeft').stop(true,true);
+                                    }
+                                    if (pagina == paginaActual-1) {
+                                        $('#bgFaderLeft').fadeIn("slow", function(){
+                                            $('#bgFaderLeft').fadeOut('slow',function(){
+                                                $('#bgFaderLeft').stop(true,true);
+                                            });
                                         });
-                                    });
                                      
+                                    }
                                 }
                             }
                         }
@@ -112,8 +116,7 @@
                     setRead(pagina+1);
                     window.location=salirYLeer;
                 } else{ 
-                    if ((imagenes[pagina] != undefined) && (imagenes[pagina]!='clean')) {  
-                        console.log("Set "+ paginaActual);
+                    if ((imagenes[pagina] != undefined) && (imagenes[pagina]!='clean') && (imagenes[pagina]!='prefetch')) {  
                         $('#pagina')[0].src=imagenes[pagina];
                         var inputObj = document.getElementById( "pageInput" );                        
                         paginaActual++;
@@ -123,7 +126,11 @@
                             // Update the value 
                             inputObj.value = paginaActual+1; 
                         }
-                    }                               
+                    } else {
+                        if (imagenes[pagina]!='prefetch')  {
+                            prefetch(1);
+                        }
+                    }                              
                     if ((imagenes[pagina+1] == undefined) || (imagenes[pagina+1] == 'clean')){
                         prefetch(1);
                     }
