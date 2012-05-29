@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
@@ -26,22 +27,23 @@ public class ProcessFileZip extends ProcessFile {
 
     ZipFile zipPointer;
     File fichero;
-    List<ZipEntry> entriesList;
+    List<ZipEntryComparable> entriesList;
 
     private ProcessFileZip(File fichero, ZipFile zipPointer) {
         this.zipPointer = zipPointer;
         this.fichero = fichero;
         Enumeration<ZipEntry> entries = (Enumeration<ZipEntry>) zipPointer.entries();
-        this.entriesList = new ArrayList<ZipEntry>();
+        this.entriesList = new ArrayList<ZipEntryComparable>();
         ZipEntry temp = null;
         while (entries.hasMoreElements()) {
             temp = entries.nextElement();
             if (getExtension(temp.getName()) != null) {
                 if (ProcessFile.imgExtensions.contains(getExtension(temp.getName().toLowerCase()))) {
-                    entriesList.add(temp);
+                    entriesList.add(new ZipEntryComparable(temp));
                 }
             }
         }
+        Collections.sort(entriesList);
     }
 
     public static ProcessFile createProcesFile(File fichero) {
@@ -81,7 +83,7 @@ public class ProcessFileZip extends ProcessFile {
     @Override
     public String next() {
         if (this.hasNext()) {
-            ZipEntry temp = entriesList.get(0);
+            ZipEntry temp = entriesList.get(0).getZipEntry();
             byte[] bytes = processZipEntry(temp);
             if (bytes != null) {
                 return Base64.encodeToString(bytes, false);
@@ -102,7 +104,7 @@ public class ProcessFileZip extends ProcessFile {
     @Override
     public String getNextExtension() {
         if (this.hasNext()) {
-            ZipEntry temp = entriesList.get(0);
+            ZipEntry temp = entriesList.get(0).getZipEntry();
             return getExtension(temp.getName());
         } else {
             return null;
@@ -113,7 +115,7 @@ public class ProcessFileZip extends ProcessFile {
     public String getImg64At(int index) {
         if ((entriesList != null) && (index >= 0)) {
             if (entriesList.size() >= index + 1) {
-                byte[] bytes = processZipEntry(entriesList.get(index));
+                byte[] bytes = processZipEntry(entriesList.get(index).getZipEntry());
                 if (bytes != null) {
                     return Base64.encodeToString(bytes, false);
                 } else {
@@ -128,7 +130,7 @@ public class ProcessFileZip extends ProcessFile {
     public byte[] getImgBytesAt(int index) {
         if ((entriesList != null) && (index >= 0)) {
             if (entriesList.size() >= index + 1) {
-                byte[] bytes = processZipEntry(entriesList.get(index));
+                byte[] bytes = processZipEntry(entriesList.get(index).getZipEntry());
                 if (bytes != null) {
                     return bytes;
                 } else {
@@ -143,7 +145,7 @@ public class ProcessFileZip extends ProcessFile {
     public String getExtensionAt(int index) {
         if ((entriesList != null) && (index >= 0)) {
             if (entriesList.size() >= index + 1) {
-                return getExtension(entriesList.get(index).getName());
+                return getExtension(entriesList.get(index).getZipEntry().getName());
             }
         }
         return null;
@@ -172,13 +174,13 @@ public class ProcessFileZip extends ProcessFile {
     public BufferedImage getImageAt(int index) {
         if ((entriesList != null) && (index >= 0)) {
             if (entriesList.size() >= index + 1) {
-                byte[] bytes = processZipEntry(entriesList.get(index));
+                byte[] bytes = processZipEntry(entriesList.get(index).getZipEntry());
                 String extension = this.getExtensionAt(index);
-                if ("jpeg".equals(extension) || "jpg".equals(extension)) {
-                    return ProcessFile.imageFromBytesJpeg(bytes);
-                } else {
-                    return ProcessFile.imageFromBytes(bytes);
-                }
+               // if ("jpeg".equals(extension) || "jpg".equals(extension)) {
+                    return ProcessFile.imageFromBytesAlternate(bytes);
+               // } else {
+               //     return ProcessFile.imageFromBytes(bytes);
+               // }
             }
         }
         return null;

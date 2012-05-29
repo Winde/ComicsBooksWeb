@@ -26,6 +26,7 @@
             var urlComic ="<c:url value="" ><c:param name="ruta" value="${param.ruta}"/><c:param name="json" value="true"/></c:url>";	
             var needsNotice = <c:choose><c:when test="${model.contentType.equals('libros')}" >true;</c:when><c:otherwise>false;</c:otherwise></c:choose>
             var salir = "<c:url value="${model.exit}" ><c:if test="${!model.parentDirectory.equals('')}"><c:param name="ruta" value="${model.parentDirectory}"/></c:if></c:url>";
+            var salirYLeer="<c:url value="/read.htm"><c:param name="ruta" value="${param.ruta}"/><c:param name="read" value="true" /><c:param name="type" value="${model.contentType}"/></c:url>";	             
             var positionTop=false;
             var positionBottom=false; 
             var storedPositionTop=false;
@@ -113,7 +114,7 @@
                 $('#loading').fadeOut(1000);
                 if (imagenes[pagina] ===null){
                     setRead(0);
-                    window.location=salir;
+                    window.location=salirYLeer;
                 } else{ 
                     if ((imagenes[pagina] != undefined) && (imagenes[pagina]!='clean') && (imagenes[pagina]!='prefetch')) {  
                         $('#pagina')[0].src=imagenes[pagina];

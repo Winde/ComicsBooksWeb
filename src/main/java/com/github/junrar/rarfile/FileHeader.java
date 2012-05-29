@@ -406,7 +406,7 @@ public class FileHeader extends BlockHeader implements Comparable {
             return 0;
         } else {
             FileHeader temp = (FileHeader) o;
-            return this.getFileNameString().compareTo(temp.getFileNameString());
+            return this.getFileNameString().toLowerCase().compareTo(temp.getFileNameString().toLowerCase());
         }
 
     }

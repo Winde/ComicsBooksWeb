@@ -98,7 +98,7 @@ public abstract class ProcessFile implements Iterator<String> {
         }
     }
 
-    public static BufferedImage imageFromBytesJpeg(byte[] bytes) {
+    public static BufferedImage imageFromBytesAlternate(byte[] bytes) {
 
         int[] RGB_MASKS = {0xFF0000, 0xFF00, 0xFF};
         ColorModel RGB_OPAQUE = new DirectColorModel(32, RGB_MASKS[0], RGB_MASKS[1], RGB_MASKS[2]);

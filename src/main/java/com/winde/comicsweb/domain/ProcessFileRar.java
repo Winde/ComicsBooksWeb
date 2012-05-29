@@ -149,7 +149,7 @@ public class ProcessFileRar extends ProcessFile {
                 byte[] bytes = processFileHeader(ficheroActual);
                 String extension = this.getExtensionAt(index);
                 if ("jpeg".equals(extension) || "jpg".equals(extension)) {
-                    return ProcessFile.imageFromBytesJpeg(bytes);
+                    return ProcessFile.imageFromBytesAlternate(bytes);
                 } else {
                     return ProcessFile.imageFromBytes(bytes);
                 }
