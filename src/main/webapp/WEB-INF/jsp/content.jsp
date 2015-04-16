@@ -3,9 +3,13 @@
 <html>
     <head>       
         <title><c:out value="${model.contentName}"/></title>
-        <META HTTP-EQUIV="CACHE-CONTROL" CONTENT="PUBLIC">
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+        <meta HTTP-EQUIV="CACHE-CONTROL" CONTENT="PUBLIC" />
         <script type="text/javascript" src="resources/jquery.js"></script>
         <script type="text/javascript" src="resources/jquery.touchwipe.js"></script>
+        <!-- <script type="text/javascript" src="resources/jquery.mobile-1.3.0/jquery.mobile-1.3.0.js"></script> -->
+        <link rel="stylesheet" type="text/css" media="all" href="resources/jquery.mobile-1.3.0/jquery.mobile-1.3.0.css" />
     </head>
     <body style="margin:0px;">
         <style>
@@ -19,10 +23,13 @@
                 user-select: none;
                 -webkit-tap-highlight-color: rgba(0,0,0,0);
             }
-
+            #pagina {
+                width: 100%;
+            }
         </style> 
         <script type="text/javascript">       
-            var paginaActual = null;
+            var paginaActual = null;            
+            var inputObj = [];
             var urlComic ="<c:url value="" ><c:param name="ruta" value="${param.ruta}"/><c:param name="json" value="true"/></c:url>";	
             var needsNotice = <c:choose><c:when test="${model.contentType.equals('libros')}" >true;</c:when><c:otherwise>false;</c:otherwise></c:choose>
             var salir = "<c:url value="${model.exit}" ><c:if test="${!model.parentDirectory.equals('')}"><c:param name="ruta" value="${model.parentDirectory}"/></c:if></c:url>";
@@ -32,7 +39,7 @@
             var storedPositionTop=false;
             var storedPositionBottom=false;            
             var imagenes = {};
-        </script>
+            </script>
 
 
 
@@ -42,8 +49,8 @@
         <c:set var="img64" value="data:image/${model.extension};base64,${model.imagen}" />        
         <div id="paginaDiv" style="text-align: center">
             <div id="loading" style="width: 100%; height: 100%;position:fixed; top:0px; left:0px;background-image:url('resources/ajax-loader.gif');background-repeat:no-repeat;background-position:center;display:none;"></div> 
-            <div id="bgFaderLeft" style="width: 35%; height: 100%; position:fixed; top:0px; left:0px; display:none;background-image:url('resources/arrow_left.png');background-repeat:no-repeat;background-position:center; "></div>        
-            <div id="bgFaderRight" style="width: 35%; height: 100%; position:fixed; top:0px; right:0px; display:none;background-image:url('resources/arrow_right.png');background-repeat:no-repeat;background-position:center; "></div>
+            <div id="bgFaderLeft" style="width: 35%; height: 100%; position:fixed; top:0px; left:0px; display:none;background-image:url('resources/arrow_left.png');background-repeat:no-repeat;background-position:center;background-size: contain; max-width: 256px;"></div>        
+            <div id="bgFaderRight" style="width: 35%; height: 100%; position:fixed; top:0px; right:0px; display:none;background-image:url('resources/arrow_right.png');background-repeat:no-repeat;background-position:center;background-size: contain; max-width: 256px;"></div>
             <div class="mover" style="width: 100%; height: 10%; position:fixed; top:0px; left:0px; " onclick="window.location=salir">&nbsp;</div>
             <div class="mover" style="width: 35%; height: 100%; position:fixed; top:10%; left:0px; " onclick="getPrevious()">&nbsp;</div> 
             <div class="mover" style="width: 35%; height: 100%; position:fixed; top:10%; right:0px; " onclick="getNext()">&nbsp;</div> 
@@ -51,9 +58,12 @@
             <img id="pagina" src="<c:out value="${img64}" />" style="margin: 0 auto 0 auto" />
         </div>
         <div style="text-align:center">
-            <form:form  method="post" modelAttribute="pagina">
-                <form:input path="numero" cssStyle="width:25px" id="pageInput"></form:input> of <c:out value="${model.totalPages}" />
-                    <input type="submit" value="Go" />
+            
+            <form:form  data-ajax="false" method="post" modelAttribute="pagina">
+                <div class="ui-input-text ui-shadow-inset ui-corner-all ui-btn-shadow ui-body-c">
+                     <input type="text" name="numero" id="pageInput" class="ui-input-text ui-body-c" value="" placeholder="<c:out value="${pagina.numero}"/> of <c:out value="${model.totalPages}"/>" totalPages="${model.totalPages}" current="${pagina.numero}">   
+                </div>
+                
             </form:form>
         </div>
         <script type="text/javascript">
@@ -63,7 +73,24 @@
                 $.getJSON(readPageURL, null);
             }
             
+            function flashArrowRight() {
+                
+                $('#bgFaderRight').stop().fadeIn("slow", function(){
+                    $('#bgFaderRight').fadeOut('slow',function(){
+                        $('#bgFaderRight').stop(true,true);
+                    });
+                });
+    
+            }        
             
+            function flashArrowLeft() {
+                $('#bgFaderLeft').fadeIn("slow", function(){
+                    $('#bgFaderLeft').fadeOut('slow',function(){
+                        $('#bgFaderLeft').stop(true,true);
+                    });
+                });
+
+            }
             
             function prefetch(inc) {
                 var pagina = paginaActual+inc;
@@ -83,20 +110,15 @@
                                     var imagen = "data:image/"+data['extension']+";base64,"+data['imagen'];                                       
                                     imagenes[pagina] = imagen;                          
                                     if (pagina == paginaActual+1) {
-                                        $('#bgFaderRight').fadeIn("slow", function(){
-                                            $('#bgFaderRight').fadeOut('slow',function(){
-                                                $('#bgFaderRight').stop(true,true);
-                                            });
-                                        });
+                                        flashArrowRight();
                                     }
                                     if (pagina == paginaActual-1) {
-                                        $('#bgFaderLeft').fadeIn("slow", function(){
-                                            $('#bgFaderLeft').fadeOut('slow',function(){
-                                                $('#bgFaderLeft').stop(true,true);
-                                            });
-                                        });
-                                     
+                                       flashArrowLeft();                                     
                                     }
+                                    if (inc<3){
+                                        prefetch(inc+1);
+                                    }
+                                    
                                 }
                             }
                         }
@@ -108,6 +130,14 @@
                 getNextWithPosition(1);
             }
 
+            function changeInputValue(value) {
+                if( inputObj.length>0 ) { 
+                    // Update the value 
+                    inputObj.attr('current',value);
+                    inputObj.attr('placeholder',value+" of " + inputObj.attr('totalpages'));
+                }                
+            }
+
             function getNextWithPosition(position) {
                 var pagina = paginaActual+1;
                 $('#loading').show();
@@ -117,23 +147,34 @@
                     window.location=salirYLeer;
                 } else{ 
                     if ((imagenes[pagina] != undefined) && (imagenes[pagina]!='clean') && (imagenes[pagina]!='prefetch')) {  
-                        $('#pagina')[0].src=imagenes[pagina];
-                        var inputObj = document.getElementById( "pageInput" );                        
+                        $('#pagina').attr('src',imagenes[pagina]).one("load", function(){
+                            if ((imagenes[pagina+1] == undefined) || (imagenes[pagina+1] == 'clean') && (imagenes[pagina+1] != 'prefetch')){
+                            } else {   
+                                window.scrollTo(0,1);           
+                                flashArrowRight();
+                            }   
+                        });
+                        //$('#pagina')[0].src=imagenes[pagina];        
+                        
                         paginaActual++;
-                        setRead(paginaActual); 
-                        window.scrollTo(0,1);                        
-                        if( inputObj ) { 
-                            // Update the value 
-                            inputObj.value = paginaActual+1; 
+                        setRead(paginaActual);                                     
+                        changeInputValue(paginaActual+1);
+                       
+                        if ((imagenes[pagina+1] == undefined) || (imagenes[pagina+1] == 'clean') && (imagenes[pagina+1] != 'prefetch')){
+                            prefetch(1);         
+                        }
+                        if ((imagenes[pagina+2] == undefined) || (imagenes[pagina+2] == 'clean') && (imagenes[pagina+2] != 'prefetch')){
+                            prefetch(2);
+                        }
+                        if ((imagenes[pagina+3] == undefined) || (imagenes[pagina+3] == 'clean') && (imagenes[pagina+3] != 'prefetch')){
+                            prefetch(3);
                         }
                     } else {
                         if (imagenes[pagina]!='prefetch')  {
                             prefetch(1);
                         }
                     }                              
-                    if ((imagenes[pagina+1] == undefined) || (imagenes[pagina+1] == 'clean')){
-                        prefetch(1);
-                    }
+                    
                     /*    if ((imagenes[pagina+2] == undefined) || (imagenes[pagina+2] == 'clean')){
                         prefetch(2);
                     }
@@ -161,11 +202,7 @@
                         $('#pagina')[0].src=imagenes[pagina];
                         paginaActual--;
                         window.scrollTo(0,position);
-                        var inputObj = document.getElementById( "pageInput" ); 
-                        if( inputObj ) { 
-                            // Update the value 
-                            inputObj.value = paginaActual+1; 
-                        }  
+                        changeInputValue(paginaActual+1); 
                     }
                     if ((imagenes[pagina-1] == undefined) || (imagenes[pagina-1] == 'clean')){
                         prefetch(-1);
@@ -194,7 +231,7 @@
                         case 37: //Left Arrow
                             getPrevious();
                             break;    
-                        case 39: //Right Arrow
+                            case 39: //Right Arrow
                             getNext();
                             break; 
                         case 33: //Page Up
@@ -247,9 +284,8 @@
             
             document.body.onload=function() {
                 ajustar();
-                var inputObj = document.getElementById( "pageInput" );                 
-                paginaActual= <c:choose><c:when test="${param.pagina!=null}"><c:out value="${param.pagina}"/></c:when><c:otherwise>inputObj.value-1</c:otherwise></c:choose>; 
-                console.log(paginaActual);
+                inputObj = jQuery("#pageInput" );                 
+                paginaActual= <c:choose><c:when test="${param.pagina!=null}"><c:out value="${param.pagina}"/></c:when><c:otherwise>inputObj.attr('current')-1</c:otherwise></c:choose>; 
                 imagenes[paginaActual] = $('#pagina')[0].src;
 
 

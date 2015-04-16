@@ -18,11 +18,21 @@
         padding: 0;
         margin: 0;
         float: left;
+        width: 100%;
     }
     #topBar li  {
         float: left;
         list-style: none;
         background: none;
+        width: 20%;
+        text-align: center;
+    }
+    
+    #topBar li a {
+        padding: 5px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
     }
     #topBar a { outline: none; }
     #topBar li a:link, #menu li a:visited {
@@ -32,8 +42,8 @@
         display: block;
         color: #262626;
         text-decoration: none;
+        padding: 11.5px 5%;
         text-transform: capitalize;
-        padding: 11.5px 28px;
     }
 
     #topBar li a:link, #topBar li a:visited {
@@ -42,7 +52,6 @@
         font-weight: bold;
         display: block;
         color: #262626;
-        padding: 11.5px 28px;
         text-decoration: none;
         text-transform: capitalize;
 
@@ -99,7 +108,7 @@
         float: left;
         list-style: none;
         background: none;
-        border-right: #000 solid 1px;
+        outline: #000 solid 1px;
     }
 
     #topBar ul  {
@@ -193,17 +202,17 @@
     <ul>
         <li>
             <a href="<c:url value="/changepath.htm" ><c:if test="${param.ruta!=null && !''.equals(param.ruta)}" ><c:param name="ruta" value="${param.ruta}" /></c:if><c:if test="${type!=null}"><c:param name="type" value="${type}" /></c:if></c:url>">
-                    Change content paths</a>
+                    Content paths</a>
         </li>
         
         <li>
             <a href="<c:url value="/read.htm"><c:param name="ruta" value="${param.ruta}" /><c:param name="type" value="${type}" /><c:param name="read" value="true" /></c:url>">
-                Mark all as read
+                Mark all read
             </a>
         </li>
         <li>
             <a href="<c:url value="/read.htm"><c:param name="ruta" value="${param.ruta}" /><c:param name="type" value="${type}" /><c:param name="read" value="false" /></c:url>">
-                Mark all as unread
+                Mark all unread
             </a>   
         </li>                
         <li>
@@ -221,7 +230,7 @@
                         </c:otherwise>
                     </c:choose>
                 </c:url>">
-                Save last read page 
+                Save last page 
             </a>   
         </li>
         <c:if test="${'true'.equals(model.keepLastRead)}">
