@@ -86,6 +86,8 @@ public class BrowserController {
             session.setAttribute("procesador", null);
         }
 
+        String [] extensions = null;
+        
         setContentType(request);
         if (contentType != null) {
             String path = "";
@@ -104,7 +106,7 @@ public class BrowserController {
             ListDirectoryContent listaFicheros = new ListDirectoryContent(path);
             if (!listaFicheros.pathExists()) {
                 Map<String, Object> myModel = new HashMap<String, Object>();
-                
+
                 myModel.put("parentDirectory", null);
                 myModel.put("contentType", contentType);
                 String readlastFunctionality = config.getConfigValue("keepLastRead");
@@ -133,11 +135,16 @@ public class BrowserController {
             }
             List<Content> ficheros = new ArrayList<Content>();
 
-
-            File[] ficherosArray = listaFicheros.listFilteredFiles();
+            boolean orderedByDate = false;
+            if (ruta!=null && ruta.toLowerCase().contains("0-day")){
+                orderedByDate=true;
+            }
+            
+            File[] ficherosArray = listaFicheros.listFilteredFiles(orderedByDate);
             listaFicheros.removeExtensionFilters();
             listaFicheros.addExtensiontoFilter("jpg");
-            File[] thumbsArray = listaFicheros.listFilteredFiles();
+            File[] thumbsArray = listaFicheros.listFilteredFiles(orderedByDate);
+            boolean directorioLeido = true;
             if (ficherosArray.length > 0) {
                 File leidos = new File(path + "/" + readFileName);
                 XMLContentRead readfile = XMLContentRead.createXMLContentRead(leidos.getAbsolutePath());
@@ -146,8 +153,12 @@ public class BrowserController {
                         Boolean readValue = readfile.getReadValue(f.getName());
                         Integer lastreadPage = readfile.getLastReadPage(f.getName());
                         if (readValue != null) {
+                            if (!readValue.booleanValue()) {
+                                directorioLeido = false;
+                            }
                             ficheros.add(new Content(f.getName(), contentType, readValue.toString(), lastreadPage));
                         } else {
+                            directorioLeido = false;
                             readfile.setFileNotRead(f.getName());
                             ficheros.add(new Content(f.getName(), contentType, Boolean.FALSE.toString(), lastreadPage));
                         }

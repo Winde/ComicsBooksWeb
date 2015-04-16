@@ -38,14 +38,16 @@ public class ProcessFilePdfIce extends ProcessFile {
         Document document = new Document();
         try {
             document.setFile(fichero.getAbsolutePath());
-
-        } catch (PDFException ex) {
+        }/* catch (PDFException ex) {
             Logger.getLogger(ProcessFilePdfIce.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         } catch (PDFSecurityException ex) {
             Logger.getLogger(ProcessFilePdfIce.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         } catch (IOException ex) {
+            Logger.getLogger(ProcessFilePdfIce.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }*/catch (Exception ex) {
             Logger.getLogger(ProcessFilePdfIce.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }

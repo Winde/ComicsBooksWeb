@@ -99,7 +99,7 @@ public class ThumbsController {
                 if (new File(path).isDirectory()) {
                     ListDirectoryContent listar = new ListDirectoryContent(path);
                     listar.addExtensiontoFilter("jpg");
-                    File[] thumbs = listar.listFilteredFiles();
+                    File[] thumbs = listar.listFilteredFiles(false);
                     if (thumbs != null) {
                         if (thumbs.length >= 1) {
                             pathWithoutExtension = ProcessFile.getNameWithoutExtension(thumbs[0].getAbsolutePath());

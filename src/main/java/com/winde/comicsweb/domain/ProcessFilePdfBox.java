@@ -28,7 +28,7 @@ public class ProcessFilePdfBox extends ProcessFile {
         this.fichero = fichero;
     }
 
-    public static ProcessFile createProcessFile(File fichero) {
+    public static ProcessFile createProcessFilePdfBox(File fichero) {
         PDDocument document;
         try {
             document = PDDocument.load(fichero);

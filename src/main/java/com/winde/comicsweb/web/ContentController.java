@@ -4,15 +4,15 @@
  */
 package com.winde.comicsweb.web;
 
-import com.winde.comicsweb.domain.*;
+import com.winde.comicsweb.domain.Config;
+import com.winde.comicsweb.domain.ListDirectoryContent;
+import com.winde.comicsweb.domain.ProcessFile;
+import com.winde.comicsweb.domain.XMLContentRead;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -180,7 +180,7 @@ public class ContentController {
                 for (String s : extensions) {
                     listador.addExtensiontoFilter(s);
                 }
-                return listador.listFilteredFiles();
+                return listador.listFilteredFiles(false);
             }
         }
         return null;
@@ -421,8 +421,7 @@ public class ContentController {
         }
 
 
-        System.out.println(path
-                + " " + procesadorArchivo);
+        System.out.println(path  + " " + procesadorArchivo);
         if (procesadorArchivo
                 != null) {
             myModel.put("extension", extension);
@@ -441,28 +440,38 @@ public class ContentController {
                 return JsonView.Render(myModel, response);
             }
         }
-        if ((imagen == null) || (paginaNum
-                < 0)) {
+        System.out.println(paginaNum);
+        if ((imagen == null) || (paginaNum < 0)) {
             if (procesadorArchivo != null) {
                 procesadorArchivo.close();
             }
             session.setAttribute("procesador", null);
-            return new ModelAndView("redirect:" + htmExitRoute + "?ruta=" + URLEncoder.encode(fichero.getParent().replace(config.getConfigValue(pathAlias), "UTF-8")));
+            return new ModelAndView("redirect:" + htmExitRoute + "?ruta=" + URLEncoder.encode(fichero.getParent().replace(config.getConfigValue(pathAlias),""),"UTF-8"));
         }
         ModelAndView vista = new ModelAndView("content", "model", myModel);
         return vista;
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ModelAndView onSubmit(HttpServletRequest request, HttpServletResponse response, Pagina command, BindingResult bindingResult) throws Exception {
-        System.out.println(request.getServletPath());
+    public ModelAndView onSubmit(HttpServletRequest request, HttpServletResponse response, Pagina command, BindingResult bindingResult) throws Exception {        
+        Integer pagina = null;
+        String referrer = request.getHeader("referer");
+        String paginaString = request.getParameter("numero");
+        if (paginaString != null){             
+            try {
+                pagina = Integer.parseInt(paginaString);
+            } catch (NumberFormatException ex) {}        
+        }
         for (String s : request.getParameterMap().keySet()) {
             System.out.println(s + " : " + request.getParameter(s));
+        }
+        if (pagina == null) {
+            return new ModelAndView("redirect:" +referrer);
         }
         if (request.getParameter("ruta") == null) {
             return new ModelAndView("redirect:" + request.getServletPath() + "&pagina=" + (Integer.parseInt(request.getParameter("numero")) - 1));
 
         }
-        return new ModelAndView("redirect:" + request.getServletPath() + "?ruta=" + URLEncoder.encode(request.getParameter("ruta"), "UTF-8") + "&pagina=" + (Integer.parseInt(request.getParameter("numero")) - 1));
+        return new ModelAndView("redirect:" + request.getServletPath() + "?ruta=" + URLEncoder.encode(request.getParameter("ruta"), "UTF-8") + "&pagina=" + (pagina - 1));
     }
 }

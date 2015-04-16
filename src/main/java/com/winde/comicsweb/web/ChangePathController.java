@@ -161,28 +161,6 @@ public class ChangePathController {
         return procesadorArchivo;
     }
 
-    private File[] getFiles(String directory) {
-        if (contentType == null) {
-            return null;
-        } else {
-            ListDirectoryContent listador = new ListDirectoryContent(directory);
-            String[] extensions = null;
-            if (contentType.contains("comic")) {
-                extensions = BrowserController.getComicExtensions();
-            }
-            if (contentType.contains("libro")) {
-                extensions = BrowserController.getBookExtensions();
-            }
-            if (extensions != null) {
-                for (String s : extensions) {
-                    listador.addExtensiontoFilter(s);
-                }
-                return listador.listFilteredFiles();
-            }
-        }
-        return null;
-    }
-
     @RequestMapping(value = {"/changepath.htm"}, method = RequestMethod.GET)
     public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response, Paths command, BindingResult bindingResult, HttpSession session) throws Exception {
 

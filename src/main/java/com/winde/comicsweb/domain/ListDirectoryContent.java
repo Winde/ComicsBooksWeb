@@ -9,6 +9,7 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -33,33 +34,57 @@ public class ListDirectoryContent {
         return dir.listFiles();
     }
     
-    public File[] listExeFiles() {
+    public File[] listExeFiles(boolean orderedByDate) {
         Collection<String> extensionLnk = new ArrayList<String>();
         extensionLnk.add("exe");
-        return listFilteredFiles(extensionLnk);
+        return listFilteredFiles(extensionLnk,orderedByDate);
     }
 
-    public File[] listLnkFiles() {
+    public File[] listLnkFiles(boolean orderedByDate) {
         Collection<String> extensionLnk = new ArrayList<String>();
         extensionLnk.add("lnk");
-        return listFilteredFiles(extensionLnk);
+        return listFilteredFiles(extensionLnk,orderedByDate);
     }
     
     public void addExtensiontoFilter(String extension) {
         filter.addExtension(extension);
     }
 
-    public File[] listFilteredFiles() {
-        return dir.listFiles(filter);
+    public File[] listFilteredFiles(boolean orderedByDate) {
+        File [] files = dir.listFiles(filter);
+        if (orderedByDate){
+        Arrays.sort(files, new Comparator<File>(){
+            public int compare(File f1, File f2)
+            {
+                int value = Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
+                if (value == 0 && !f1.equals(f2)){
+                    return 1;
+                }
+                return -1*value;
+            } });
+        }
+        return files;
     }
     
-    public File[] listFilteredFiles(Collection<String> extensions) {
+    public File[] listFilteredFiles(Collection<String> extensions, boolean orderedByDate) {
         FileFilterExtensions extensionsFilter = new FileFilterExtensions(extensions);
-        return dir.listFiles(extensionsFilter);
+        File [] files = dir.listFiles(extensionsFilter);
+        if (orderedByDate){
+        Arrays.sort(files, new Comparator<File>(){
+            public int compare(File f1, File f2)
+            {              
+                int value = Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
+                if (value == 0 && !f1.equals(f2)){
+                    return 1;
+                }
+                return -1*value;
+            } });
+        }
+        return files;
     }
 
-    public File[] listFilteredFiles(Collection<String> extensions, Collection<String> dontMatchThese) {
-        File[] initialMatches = this.listFilteredFiles(extensions);
+    public File[] listFilteredFiles(Collection<String> extensions, Collection<String> dontMatchThese, boolean orderedByDate) {
+        File[] initialMatches = this.listFilteredFiles(extensions,orderedByDate);
         List<File> initialMatchesCopy = Arrays.asList(initialMatches);
         for (File f : initialMatches) {
             if (dontMatchThese != null) {

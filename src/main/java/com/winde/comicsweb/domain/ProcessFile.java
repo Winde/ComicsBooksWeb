@@ -178,7 +178,7 @@ public abstract class ProcessFile implements Iterator<String> {
             procesador = ProcessFilePdfIce.createProcessFile(fichero);
             if (procesador == null) {
                 System.out.println(fichero.getName() + " Pdf unsupported by PDFIce");
-                return ProcessFilePdfBox.createProcesFile(fichero);
+                return ProcessFilePdfBox.createProcessFilePdfBox(fichero);
             } else {
                 return procesador;
             }                
