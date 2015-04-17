@@ -8,7 +8,6 @@
     #topBar     {
         width:100%; 
         height:40px;
-        float: left;
         padding: 0;
         margin-bottom: 2px;
         background-image: -moz-linear-gradient(top, #cacaca, #848484);
@@ -20,11 +19,14 @@
         float: left;
         width: 100%;
     }
+    
     #topBar li  {
         float: left;
         list-style: none;
         background: none;
-        width: 20%;
+       
+        
+        
         text-align: center;
     }
     
@@ -81,7 +83,6 @@
     }
 
     #topBar     {
-        float: left;
         padding: 0;
         margin: 0;
 
@@ -122,6 +123,10 @@
         background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#b4b4b4), to(#707070));
     }
 
+ 	#topBar li a{
+ 		cursor: pointer;
+ 	}
+
     #topBar li a:hover    {
         cursor: pointer;
         color: #fff;
@@ -132,7 +137,7 @@
         background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#929292), to(#545454));
     }
 
-    a.active:link, a.active:active, a.active:visited	{
+   #topBar li a.active:link,#topBar li a.active:active,#topBar li a.active:visited, #topBar li a:active	{
         color: #fff !important;
         text-shadow: 0px -1px 1px #000!important;
         background-image: -moz-linear-gradient(top, #444, #666)!important;
@@ -189,6 +194,24 @@
 
 
 </style>
+
+<c:choose>       
+	<c:when test="${'true'.equals(model.keepLastRead)}">
+    	<style>
+     		#topBar li  {
+     			width: 14.28%;
+     		}
+     		</style>
+	</c:when>
+    <c:otherwise>
+     		<style>
+     		#topBar li  {
+     			width: 16.66%;
+     		}
+     		</style>
+     	</c:otherwise>
+    </c:choose>
+
 <c:choose>
     <c:when test="${model.contentType!=null && (model.contentType.contains('comic') || model.contentType.contains('libro'))}">
         <c:set var="type" value="${model.contentType}" />
@@ -247,5 +270,62 @@
                 </a>
             </li>
         </c:if>
+        <li>
+        	<a href="#" id="applySubs">Apply Subs.</a>        	            
+        </li>
+        <li>
+        	<a href="<c:url value="/managesubs.htm" />" >Manage Subs.</a>        	            
+        </li>
     </ul>
 </div>
+
+<script>
+
+jQuery(document).ready(function(){
+	
+	jQuery('#applySubs').click(function(event){
+		event.preventDefault();
+		event.stopPropagation();
+		var button = jQuery(this);
+		if (button.is('.active')){
+			jQuery('.iconFile,.iconFolder').removeClass('processed');
+			jQuery('.iconFile,.iconFolder').show();
+			button.removeClass('active');
+		} else {
+			button.addClass('active');
+			jQuery.ajax({
+				  url: "subs.json",		  
+				  dataType: "json",
+				  success: function(data){
+					  jQuery('.iconFile,.iconFolder').removeClass('processed');
+					  if (data.length>0){
+						  jQuery('.iconFile,.iconFolder').each(function(){
+							  var current = jQuery(this);
+						      var title = current.find('.filename').text();
+						      for (var i=0;i<data.length;i++){
+						    	  value = data[i];
+							      if (title!=null && title!=undefined){
+							             title = title.toLowerCase();
+							      }
+							      if (title.indexOf(value)>=0){
+							          current.show();
+							          current.addClass('processed');
+							      } else if (!current.is('.processed')){
+							          current.hide();
+							      }
+						      }
+						  });						  
+					  }
+				  },
+				  error : function(){
+					  alert("error");
+				  }
+			});
+		}
+	});				  
+
+                                                
+});
+
+
+</script>

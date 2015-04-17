@@ -18,8 +18,13 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>comicsweb</servlet-name>
-        <url-pattern>*.htm</url-pattern>
+        <url-pattern>*.htm</url-pattern>        
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>comicsweb</servlet-name>
+        <url-pattern>*.json</url-pattern>        
+    </servlet-mapping>
+    
  
 
     <welcome-file-list>

@@ -244,84 +244,18 @@
                     
                 </style>
                 
-                <script>
-                    jQuery(document).ready(function(){
-                       jQuery(".iconFile").on("contextmenu", function(event) {
-                           event.preventDefault();
-                           jQuery('.title').css('display','none');          
-                           jQuery(this).find('.title').css('display','block');    
-                           return false;
-                       }); 
-                                           
-                       jQuery('.iconFile').on('touchend mousedown', function(e){
-                           jQuery('.title').css('display','none');                        
-                       });
-                       
-                       jQuery('#bookshelf .search input').on('keydown keyup',function(){
-                           var value = jQuery('#bookshelf .search input').val();
-                           if (value!=null && value!=undefined){
-                               value = value.toLowerCase();
-                           }
-                           jQuery('.iconFile,.iconFolder').each(function(){
-                               var current = jQuery(this);
-                               var title = current.find('.filename').text();
-                               if (title!=null && title!=undefined){
-                                    title = title.toLowerCase();
-                               }
-                               if (title.indexOf(value)>=0){
-                                   current.show();
-                               } else {
-                                   current.hide();
-                               }                               
-                           });                                                     
-                       });
-                       
-                       jQuery('#bookshelf .search #sub').click(function(){
-                    	   
-                    	   jQuery.ajax({
-                    		  url: "addsub.json",
-                    		  data: "searchString=" +  jQuery('#bookshelf .search input').val(),
-                    		  dataType: "json",
-                    		  success: function(data){
-                    			  if (data.result == "success"){
-                    				  alert("success");
-                    			  } else {
-                    				  alert("error");
-                    			  }
-                    		  },
-                    		  error : function(){
-                    			  alert("error");
-                    		  }
-                    	   });
-                    	   
-                    	   
-                    	   
-                    	   jQuery('#bookshelf .search input').trigger('keyup');                  
-                       });
-                       
-                       jQuery('#bookshelf .search #delete').click(function(){
-                           jQuery('#bookshelf .search input').val("");
-                           jQuery('#bookshelf .search input').trigger('keyup');
-                       });
-                    });
-                    
-                    
-                    
-                </script>
+                
                 
                 
         <%@ include file="/WEB-INF/jsp/topbar.jsp" %>
 
         <div id="bookshelf">
             <div class="search">  
-            	<div class="container" style="position: relative"> 
-	            	<div class="btn btn-left" id="sub">Sub</div>            	
-	                <input type="text" name="searchString" class="" />
-	                <div class="btn btn-right" id="delete">X</div>
-                </div>
+            	
             </div>
+            <c:out value="${referer}" />
             <c:choose>
-                <c:when test="${model.contentType.equals('comics') && param.ruta==null}">
+                <c:when test="${referer.contains('comics')}">
 
                     <div class="contentType">
                         <a href="<c:url value="/libros.htm" ></c:url>" title="Libros"> 
@@ -333,7 +267,7 @@
 
 
                 </c:when>
-                <c:when test="${model.contentType.equals('libros') && param.ruta==null}">
+                <c:when test="${referer.contains('libros') && param.ruta==null}">
 
                     <div class="contentType">
                         <a href="<c:url value="/comics.htm" ></c:url>" title="Comics">  
@@ -342,62 +276,60 @@
                             </a>
                         </div>
 
-                </c:when>                
-            </c:choose>
-
-            <c:choose>
-                <c:when test="${model.parentDirectory=='' || model.parentDirectory==null}">
-                    <c:choose>
-                        <c:when test="${not empty param.ruta}">
-
-                            <div class="icon"><a href="<c:url value="${requestScope['javax.servlet.forward.servlet_path']}" ></c:url>"><img src="resources/back.png" /></a></div>
-                                </c:when>
-                            </c:choose>
-                        </c:when>
-                        <c:otherwise>  
-                    <div class="icon"><a href="<c:url value="" ><c:param name="ruta" value="${model.parentDirectory}"/></c:url>"><img src="resources/back.png" /></a></div>
-                        </c:otherwise>
-                    </c:choose>
-
-
-            <c:forEach items="${model.directorios}" var="dir">
-                <c:set var="trimDir" value="${fn:substring(dir,0,50)}"/>
-
-                <div class="icon iconFolder">                    
-                    <a href="<c:url value="" ><c:param name="ruta" value="${param.ruta}/${dir}"/></c:url>" title="<c:out value="${dir}"/>">
+               </c:when>
+               <c:otherwise>
+               		<div class="contentType">
+                        <a href="<c:url value="/comics.htm" ></c:url>" title="Comics">  
+                                <img src="resources/folder_comics.png" />
+                                <!--<p>Comics</p>-->
+                            </a>
+                     </div>
+               </c:otherwise>                
+            </c:choose>            
+            <c:forEach items="${model.subs}" var="sub">
+                
+                <div class="icon iconFolder" data-sub="<c:out value="${sub}"/>">                    
+                    <a href="#" class="subDelButton" title="<c:out value="${sub}"/>">
                             <img class="folder" style="z-index:1"src="resources/leopard_folder.png" />                        
                         </a>
                         <img class="folder" style="z-index:3" src="resources/leopard_folder_notab.png" />
-
-                        <div style="position:absolute;top:10px;right:-4px;z-index:2;width:70px;height:114px;background-size: 100%;;background:url('<c:url value="/thumb.htm" ><c:param name="ruta" value="${param.ruta}/${dir}"/><c:param name="type" value="${model.contentType}"/></c:url>');background-position:right;-webkit-transform: rotate(45deg); " /></div>
-                <a style="z-index:4" href="<c:url value="" ><c:param name="ruta" value="${param.ruta}/${dir}"/></c:url>" title="<c:out value="${dir}"/>"><p style="z-index:4" class="pInside filename"><c:out value="${trimDir}"/></p> </a>
+                        
+                	<a style="z-index:4" href="#" title="<c:out value="${sub}"/>"><p style="z-index:4" class="pInside filename"><c:out value="${sub}"/></p> </a>
                 </div>
-
-        </c:forEach>
-        <c:forEach items="${model.ficheros}" var="fichero">
-            <c:set var="trimFichero" value="${fn:substring(fichero.filename,0,50)}"/>
-
-            <div class="icon iconFile">
-                <span class="title filename">${fichero.filename}</span>
-                <c:if test="${fichero.isRead.equals('true')}"><img class="badgeRead" style="z-index:9" src="resources/read.png" /></c:if>
-                <c:choose>
-                    <c:when test="${fichero.contentType.equals('libros')}">
-                        <a href="<c:url value="/libro.htm" ><c:param name="ruta" value="${param.ruta}/${fichero.filename}"/></c:url>" title="<c:out value="${fichero.filename}"/>">
-                        </c:when>
-                        <c:when test="${fichero.contentType.equals('comics')}">
-                            <a href="<c:url value="/comic.htm" ><c:param name="ruta" value="${param.ruta}/${fichero.filename}"/></c:url>" title="<c:out value="${fichero.filename}"/>">
-                            </c:when>                            
-                        </c:choose>
-                        <img class="thumb" style="z-index:2" src="<c:url value="/thumb.htm" ><c:param name="ruta" value="${param.ruta}/${fichero.filename}"/><c:param name="type" value="${fichero.contentType}"/></c:url>" />
-                        </a>
-                    <c:if test="${fichero.lastReadPage!=null && 'true'.equals(model.keepLastRead) && fichero.lastReadPage>0}"><div class="readPageNumber">${fichero.lastReadPage+1}</div></c:if>                        
-                    <p style="z-index:1"><c:out value="${trimFichero}"/></p>
-            </div>
 
         </c:forEach>
         <c:set var="baseURL" value="${fn:substringBefore(window.location.pathname,'?')}"/>
     </div>
     <script>(function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone")</script>
 
+	<script>
+		jQuery(document).ready(function(){
+			jQuery('.icon.iconFolder').click(function(){
+				var button = jQuery(this);
+				var sub = jQuery(this).attr('data-sub');
+				console.log(jQuery(this));
+				console.log(button);
+				console.log(sub);
+				if (sub!=null && sub!=undefined) {
+					jQuery.ajax({
+						  url: "removesub.json",
+						  data: "searchString=" + sub,
+						  dataType: "json",
+						  success: function(data){
+							  if (data.result == "success"){
+								  button.remove();
+							  }
+						  },
+						  error : function(){
+							  alert("error");
+						  }
+					});					
+				}
+				
+			});
+			
+		});
+	
+	</script>
 </body>
 </html>

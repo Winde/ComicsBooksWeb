@@ -8,10 +8,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.dbcp.BasicDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,6 +33,8 @@ public class Config {
             put("keepLastRead", "true");
         }
     };
+    
+    private static List<String> favorites = null;
     private static Map<String, Boolean> initialized = new HashMap<String, Boolean>() {
 
         {
@@ -43,6 +48,16 @@ public class Config {
         this.datasource = datasource;
     }
 
+    private void createFavoriteTableIfNotExists(Connection connection) {
+    	PreparedStatement preparedStatement;
+        try {
+            preparedStatement = connection.prepareStatement("CREATE TABLE IF NOT EXISTS favorites (name VARCHAR(500))");
+            preparedStatement.execute();
+        } catch (SQLException ex) {
+            Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex);
+        }    	    	
+    }
+    
     private void createConfigTableIfNotExists(Connection connection) {
         PreparedStatement preparedStatement;
         try {
@@ -53,6 +68,116 @@ public class Config {
         }
     }
 
+    public List<String> getFavorites() {
+    	if (favorites!=null) {
+    		return favorites;
+    	} else {
+    	    favorites = new ArrayList<>();
+    		 Connection connection = null;
+             try {
+                 connection = datasource.getConnection();
+                 createFavoriteTableIfNotExists(connection);
+                 PreparedStatement preparedStatement = connection.prepareStatement("SELECT name FROM favorites");                 
+                 ResultSet rs = preparedStatement.executeQuery();
+                 while (rs.next()) {
+                     String salida = rs.getString("name");                     
+                     favorites.add(salida);                                          
+                 } 
+             } catch (SQLException ex) {
+                 Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex);
+                 favorites = null;
+             } catch (Exception ex) {
+            	 Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex);
+            	 favorites = null;
+             }finally  {
+             	try {
+                    if (connection != null) {
+                        connection.close();
+                    }
+                } catch (SQLException ex1) {
+                    Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex1);
+                }        	
+            }
+    	}
+    	return favorites;
+    }
+    
+    public boolean deleteFavorite(String favorite) {
+    	
+    	Connection connection = null;
+        try {
+            connection = datasource.getConnection();
+            createFavoriteTableIfNotExists(connection);
+            PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM favorites WHERE name =?");
+            preparedStatement.setString(1, favorite);
+            int result = preparedStatement.executeUpdate();
+            if (favorites!=null) {
+        		favorites.remove(favorite);
+        	}            
+            if (result>0) {
+            	return true;
+            } else {
+            	return false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex);            
+        } catch (Exception ex) {
+       	 	Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex);       	 	
+        }finally  {
+        	try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException ex1) {
+                Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex1);
+            }        	
+        }
+    	
+        return false;		
+    }
+    
+    public boolean addFavorite(String favorite) {
+    	if (favorites == null){   
+    		this.getFavorites();
+    	}
+    	if (favorites == null){
+    		return false;
+    	} else if (favorites.contains(favorite)){
+    		return false;
+    	}
+    	
+    	Connection connection = null;
+        try {
+            connection = datasource.getConnection();
+            createFavoriteTableIfNotExists(connection);
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO favorites (name) VALUES (?)");
+            preparedStatement.setString(1, favorite);
+            int result = preparedStatement.executeUpdate();
+            if (favorites!=null) {
+        		favorites.add(favorite);
+        	}            
+            if (result>0) {
+            	return true;
+            } else {
+            	return false;
+            }
+        } catch (SQLException ex) {            
+            Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex);            
+        } catch (Exception ex) {
+       	 	Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex);       	 	
+        }finally  {
+        	try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException ex1) {
+                Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex1);
+            }        	
+        }
+    	
+        return false;
+    }
+    
     public String getConfigValue(String key) {
         if (initialized.get(key)) {
             return cachedValues.get(key);
